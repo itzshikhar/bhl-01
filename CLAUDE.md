@@ -33,6 +33,7 @@ public/                  everything that is served
 tests/pressure_test.py   scroll-motion and content checks (Playwright)
 tools/logo/              how the logo vector was made; source PNG; build/mark-paths.json
 tools/one-pager/make.py  builds the one-pager PDF from HTML (reads fonts from tools/fonts/)
+tools/forms/             Apps Script for form submissions (reference copy) and its setup notes
 tools/fonts/             full TTF sources of both fonts; the served WOFF2 files are built from these
 docs/                    brand core (content source)
 wrangler.jsonc           Cloudflare config
@@ -112,18 +113,31 @@ for f in Gloock-Regular HankenGrotesk; do pyftsubset tools/fonts/$f.ttf --unicod
 `CONFIG` at the top of the script:
 - `name`, `email`, `role`, `phone`, `linkedinUrl`: used for the saved contact (vCard).
 - `bookingUrl`: shows "Pick a time" after a "Let's talk" or "Collaborate" submission.
-- `formEndpoint`: where submissions are POSTed as JSON. Blank keeps them in the page only (logged to console).
+- `formEndpoint`: the Google Apps Script web app that adds each submission to the "BE Human Labs leads" Sheet: `https://script.google.com/macros/s/AKfycbyzvvUjOMvt9-it4gJlwyAEVs8Mm8MyGAyuIkV818dBAS7ihMEE9X_CwTJWOX9VMXZe8g/exec`. Blank keeps submissions in the page only (logged to console).
 - `onePagerUrl`: the "Save my card" download.
 - `events`: `?src=<key>` shows "Met at <name>? Welcome." and tags each lead with its source.
 
-Payload: `{ email, path, option, chip, message, keep_me_posted, source, time }`.
+**Submissions (Google Sheet).**
+- **Request:** `POST` to `formEndpoint`, body `JSON.stringify(payload)`, header `Content-Type: text/plain;charset=utf-8` and no other custom headers. That keeps it a simple request with no CORS preflight, which Apps Script cannot answer. Fetch follows Apps Script's redirect (the default). Do not switch to `application/json` or add headers.
+- **Payload:** `{ email, path, option, chip, message, keep_me_posted, source, site, time, company_website }`. `site` is `location.hostname`.
+- **Reply:** `{"ok":true}`, `{"ok":false,"error":"email"}` or `{"ok":false,"error":"server"}`.
+- **While sending:** the submit button is disabled and reads "Sending". The request times out after 15 seconds (AbortController).
+- **On `ok:true`:** the usual confirmation. The lead is also logged to the console.
+- **On `error:"email"`:** the inline "Enter a valid email so we can reply." message.
+- **On anything else** (`error:"server"`, network failure, timeout, a bad response): no confirmation, everything the visitor typed stays in the form, and an inline message reads "That didn't go through. Please try again, or email us at <CONFIG.email>." The email is a `mailto:` link with the subject (option and topic) and message prefilled.
+- **Honeypot:** every form has a hidden `company_website` field (class `.hp`, off-screen rather than `display:none`, `aria-hidden="true"`, `tabindex="-1"`, `autocomplete="off"`). Its value goes in the payload; the script quietly drops any submission where it is filled.
+- **Privacy line** under each submit button: "We use your email only to reply and, if you opt in, to send updates. You can ask us to delete it any time."
+- **The script** is in the "BE Human Labs leads" Sheet under Extensions > Apps Script, deployed as a web app (Execute as Me, access Anyone). A reference copy and setup notes are in `tools/forms/` (`apps-script.gs`, `README.md`). Run `setup()` once from the editor after any change to permissions.
+- **New version, same URL.** Update the script only through Deploy > Manage deployments > edit > New version. A new deployment changes the URL and silently breaks the forms until `formEndpoint` is updated.
+- **Previews post to the same Sheet.** Branch preview builds use the same endpoint; the Site column (`location.hostname`: `behumanlabs.com` or `*.workers.dev`) tells them apart.
+- **Tests never hit the real endpoint.** `tests/pressure_test.py` intercepts every `script.google.com` and `script.googleusercontent.com` request with Playwright and answers it with a mock.
 
 ## Open items
 
 - [x] Real name, email and role in `CONFIG` and in `tools/one-pager/make.py` (`CONTACT`), then rebuild the PDF.
 - [x] Conference name in `CONFIG.events` (`conf`: 18th Ed Leadership International Roundtable).
 - [x] Domain in `og:url`, `og:image` and the canonical link (behumanlabs.com).
-- [ ] `formEndpoint`: a Cloudflare Worker route, Formspree, or Google Apps Script.
+- [x] `formEndpoint`: Google Apps Script writing to the "BE Human Labs leads" Sheet (see `tools/forms/`).
 - [ ] Optional `bookingUrl`.
 - [ ] Add the brand core as `docs/brand-core.md`.
 
