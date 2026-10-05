@@ -222,6 +222,10 @@ form.f{padding:var(--s3) 0 var(--s4); border-bottom:1px solid var(--line)}
 .check{display:flex; gap:12px; align-items:flex-start; font-size:15px; margin-bottom:var(--s3)}
 .check input{width:20px; height:20px; margin-top:2px; accent-color:var(--ink); flex:none}
 .err{font-size:15px; font-weight:600; margin:calc(-1 * var(--s2)) 0 var(--s2)}
+.err a{color:inherit}
+.f .note{font-size:14px; color:var(--soft); margin-top:var(--s2); max-width:34em}
+/* honeypot: off-screen rather than display:none, so bots still see and fill it */
+.hp{position:absolute; left:-10000px; top:auto; width:1px; height:1px; overflow:hidden}
 .done{padding:var(--s4) 0}
 .done h3{font-size:clamp(28px,4vw,39px)}
 .done p{color:var(--soft); margin-top:var(--s2)}
@@ -707,7 +711,9 @@ function formHTML(o) {
     : `<div class="field"><label class="lbl" for="em">Your email</label><input id="em" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" value="${esc(state.email)}"></div>`;
   const msg = o.msg ? `<div class="field"><label class="lbl" for="msg">${o.msg} <span style="font-weight:400">(optional)</span></label><textarea id="msg"></textarea></div>` : "";
   const keep = o.emailOnly ? "" : `<label class="check"><input type="checkbox" id="keep" checked><span>Keep me posted on future updates and opportunities. You can opt out any time.</span></label>`;
-  return `<form class="f" id="f" novalidate>${chips}${email}${msg}${keep}<p class="err" id="err" hidden>Enter a valid email so we can reply.</p><button class="btn" type="submit">${o.cta}</button></form>`;
+  const hp = `<input class="hp" type="text" name="company_website" id="cw" tabindex="-1" autocomplete="off" aria-hidden="true">`;
+  return `<form class="f" id="f" novalidate>${chips}${email}${msg}${keep}${hp}<p class="err" id="err" aria-live="polite" hidden>Enter a valid email so we can reply.</p><button class="btn" type="submit">${o.cta}</button>
+    <p class="note">We use your email only to reply and, if you opt in, to send updates. You can ask us to delete it any time.</p></form>`;
 }
 function panelHTML() {
   if (state.done) {
