@@ -1,0 +1,17 @@
+// Cloudflare Workers config: a static site served from ./public (no server code).
+// Requests for files in ./public are served directly and are not billed as Worker invocations.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "be-human-labs",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./public",
+    "not_found_handling": "404-page"
+  }
+  // Custom domain: easiest to add in the dashboard (Worker > Settings > Domains & Routes).
+  // Or uncomment and set your domain, then deploy:
+  // ,"routes": [
+  //   { "pattern": "yourdomain.com", "custom_domain": true },
+  //   { "pattern": "www.yourdomain.com", "custom_domain": true }
+  // ]
+}
