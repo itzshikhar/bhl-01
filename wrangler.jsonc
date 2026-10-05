@@ -2,7 +2,7 @@
 // Requests for files in ./public are served directly and are not billed as Worker invocations.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "be-human-labs",
+  "name": "bhl-01",
   "compatibility_date": "2026-10-01",
   "assets": {
     "directory": "./public",
