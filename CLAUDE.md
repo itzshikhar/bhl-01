@@ -59,7 +59,7 @@ for f in Gloock-Regular HankenGrotesk; do pyftsubset tools/fonts/$f.ttf --unicod
     - **55%** of Indian IT firms saw entry-level employment fall after adopting AI; 25% at mid level. ICRIER, *AI and Jobs: This Time is No Different*, 651 IT firms, 10 Indian cities, surveyed Nov 2025 to Jan 2026, supported by OpenAI (all named in the cite). India. Researchers frame it as slower hiring, not job losses; keep the wording "saw entry-level employment fall".
   - *Divide section evidence (`<small>`)*
     - Industry produced about 91% of notable AI models in 2025. Stanford AI Index 2026. Global count.
-    - Almost half of people say they have limited knowledge of AI; only 40% say their workplace offers any guidance on using generative AI. University of Melbourne and KPMG, 2025. Multi-country. **The 40% is not yet verified against the report** (the source was unreachable from the build environment); check it before quoting it elsewhere.
+    - Almost half of people say they have limited knowledge of AI; only 40% of employees say their workplace has a policy or guidance on generative AI use. University of Melbourne and KPMG, 2025. Multi-country. The 40% is a share of employees, not of all respondents; keep "employees" in the wording. Verified against Melbourne Business School's 2025 impact report: https://www.mbs.edu/2025-impact-report/impact-stories/Global-study-reveals-trust-of-AI-remains-a-critical-challenge
     - Across 25 countries, awareness of and enthusiasm for AI are higher among the highly educated and in wealthier countries. Pew Research Center, October 2025. Multi-country.
     - In India only 19% are more concerned than excited about AI. Pew Research Center, October 2025. India.
   - *Growing section evidence (`<small>`)*
