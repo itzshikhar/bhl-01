@@ -56,7 +56,7 @@ footer .contact b{{font-family:Gloock,serif;font-weight:400;font-size:11pt}}
 <section class="why pad"><div class="grid">
 <div><div class="label">Why we exist</div><h2>A few people are shaping the future. Everyone else is absorbing it.</h2><p class="soft">The gap isn't about talent. It's about who has been prepared to see what is coming and act on it.</p></div>
 <div><span class="num">2 in 5</span><p>people have had any AI training, though two in three already use AI regularly.</p><cite>University of Melbourne and KPMG, 48,000 people in 47 countries, 2025</cite></div>
-<div><span class="num">55%</span><p>of Indian IT firms saw entry-level employment fall after adopting AI. At mid level, only 25% did.</p><cite>ICRIER, survey of 651 IT firms in 10 Indian cities, 2026</cite></div>
+<div><span class="num">55%</span><p>of Indian IT firms saw entry-level employment fall after adopting AI. At mid level, only 25% did.</p><cite>ICRIER, AI and Jobs: This Time is No Different. 651 IT firms in 10 Indian cities, surveyed Nov 2025 to Jan 2026. Supported by OpenAI.</cite></div>
 </div></section>
 <section class="pad"><div class="label">How the lab works</div><h2>Research, innovation and transformation, run as one engine.</h2>
 <div class="cols c3 rule" style="padding-top:3mm">
