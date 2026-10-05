@@ -70,6 +70,7 @@ h3{font-size:24px; line-height:1.1}
   background:var(--btn); color:var(--btn-ink); font-weight:600; font-size:16px; text-decoration:none; cursor:pointer; transition:transform .2s var(--ease)}
 .btn:hover{transform:translateY(-1px)}
 .btn:active{transform:none}
+.btn:disabled{opacity:.6; cursor:progress; transform:none}
 .tlink{font-weight:600; font-size:16px; text-decoration:none; padding:10px 0; cursor:pointer; background:none; border:0;
   background-image:linear-gradient(currentColor,currentColor); background-size:100% 1px; background-position:0 calc(100% - 6px); background-repeat:no-repeat;
   transition:background-size .35s var(--ease)}
@@ -222,6 +223,10 @@ form.f{padding:var(--s3) 0 var(--s4); border-bottom:1px solid var(--line)}
 .check{display:flex; gap:12px; align-items:flex-start; font-size:15px; margin-bottom:var(--s3)}
 .check input{width:20px; height:20px; margin-top:2px; accent-color:var(--ink); flex:none}
 .err{font-size:15px; font-weight:600; margin:calc(-1 * var(--s2)) 0 var(--s2)}
+.err a{color:inherit}
+.f .note{font-size:14px; color:var(--soft); margin-top:var(--s2); max-width:34em}
+/* honeypot: off-screen rather than display:none, so bots still see and fill it */
+.hp{position:absolute; left:-10000px; top:auto; width:1px; height:1px; overflow:hidden}
 .done{padding:var(--s4) 0}
 .done h3{font-size:clamp(28px,4vw,39px)}
 .done p{color:var(--soft); margin-top:var(--s2)}
@@ -555,7 +560,7 @@ const CONFIG = {
   linkedinUrl: "",            // optional, added to the saved contact
   onePagerUrl: "be-human-labs-one-pager.pdf",   // "Save my card" downloads this file; put the PDF next to this page or paste a full link
   bookingUrl: "",              // e.g. your calendar link; leave blank to hide "Pick a time"
-  formEndpoint: "",            // e.g. a Formspree or Google Apps Script URL; blank keeps submissions in this page only
+  formEndpoint: "https://script.google.com/macros/s/AKfycbyzvvUjOMvt9-it4gJlwyAEVs8Mm8MyGAyuIkV818dBAS7ihMEE9X_CwTJWOX9VMXZe8g/exec",   // Apps Script web app that writes to the "BE Human Labs leads" Sheet (tools/forms); blank keeps submissions in this page only
   events: { conf: "18th Ed Leadership International Roundtable" }   // ?src=conf shows "Met at 18th Ed Leadership International Roundtable? Welcome."
 };
 
@@ -707,7 +712,9 @@ function formHTML(o) {
     : `<div class="field"><label class="lbl" for="em">Your email</label><input id="em" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" value="${esc(state.email)}"></div>`;
   const msg = o.msg ? `<div class="field"><label class="lbl" for="msg">${o.msg} <span style="font-weight:400">(optional)</span></label><textarea id="msg"></textarea></div>` : "";
   const keep = o.emailOnly ? "" : `<label class="check"><input type="checkbox" id="keep" checked><span>Keep me posted on future updates and opportunities. You can opt out any time.</span></label>`;
-  return `<form class="f" id="f" novalidate>${chips}${email}${msg}${keep}<p class="err" id="err" hidden>Enter a valid email so we can reply.</p><button class="btn" type="submit">${o.cta}</button></form>`;
+  const hp = `<input class="hp" type="text" name="company_website" id="cw" tabindex="-1" autocomplete="off" aria-hidden="true">`;
+  return `<form class="f" id="f" novalidate>${chips}${email}${msg}${keep}${hp}<p class="err" id="err" aria-live="polite" hidden>Enter a valid email so we can reply.</p><button class="btn" type="submit">${o.cta}</button>
+    <p class="note">We use your email only to reply and, if you opt in, to send updates. You can ask us to delete it any time.</p></form>`;
 }
 function panelHTML() {
   if (state.done) {
@@ -759,14 +766,36 @@ $$(".tabs .tab").forEach((t, i, all) => t.addEventListener("keydown", e => {
 document.addEventListener("submit", async e => {
   if (e.target.id !== "f") return;
   e.preventDefault();
+  const form = e.target, btn = form.querySelector('button[type="submit"]'), err = $("#err");
+  if (btn.disabled) return;
   const el = $("#em"), email = el ? el.value.trim() : state.email;
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { $("#err").hidden = false; el && el.focus(); return; }
+  const badEmail = () => { err.textContent = "Enter a valid email so we can reply."; err.hidden = false; el && el.focus(); };
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { badEmail(); return; }
+  err.hidden = true;
   const o = find(state.open);
   const lead = {email, path: state.tab, option: o.id, chip: state.chip, message: $("#msg") ? $("#msg").value.trim() : "",
-    keep_me_posted: o.emailOnly ? true : $("#keep").checked, source: src || "direct", time: new Date().toISOString()};
+    keep_me_posted: o.emailOnly ? true : $("#keep").checked, source: src || "direct", site: location.hostname,
+    time: new Date().toISOString(), company_website: $("#cw").value};
   if (CONFIG.formEndpoint) {
-    try { await fetch(CONFIG.formEndpoint, {method: "POST", headers: {"Content-Type": "application/json", "Accept": "application/json"}, body: JSON.stringify(lead)}); }
-    catch (err) { $("#err").textContent = "That didn't send. Check your connection and try again."; $("#err").hidden = false; return; }
+    // A text/plain POST with no other custom headers is a simple request, so there is no CORS preflight (Apps Script can't answer one).
+    const label = btn.textContent, ctrl = new AbortController(), timer = setTimeout(() => ctrl.abort(), 15000);
+    btn.disabled = true; btn.textContent = "Sending"; form.setAttribute("aria-busy", "true");
+    let res = null;
+    try {
+      const r = await fetch(CONFIG.formEndpoint, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify(lead), signal: ctrl.signal});
+      res = r.ok ? await r.json() : null;
+    } catch (x) { res = null; }
+    finally { clearTimeout(timer); btn.disabled = false; btn.textContent = label; form.removeAttribute("aria-busy"); }
+    if (!res || res.ok !== true) {
+      if (!form.isConnected) return;
+      if (res && res.error === "email") { badEmail(); return; }
+      // Nothing is cleared: the visitor's email, topic and message stay in the form.
+      const subject = `BE Human Labs: ${o.title}${state.chip ? ` (${state.chip})` : ""}`;
+      const href = `mailto:${CONFIG.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lead.message)}`;
+      err.innerHTML = `That didn't go through. Please try again, or email us at <a href="${esc(href)}">${esc(CONFIG.email)}</a>.`;
+      err.hidden = false;
+      return;
+    }
   }
   state.leads.push(lead); console.log("[BE Human Labs]", lead);
   state.email = email; state.editing = false; state.done = o; state.open = null; render();
