@@ -6,7 +6,7 @@ T = json.load(open(os.path.join(ROOT, 'tools', 'logo', 'build', 'mark-paths.json
 mark = lambda color: (f'<svg viewBox="-372 -372 744 744" aria-hidden="true"><g fill="{color}"><path fill-rule="evenodd" d="{T["frame"]}"/>'
         + ''.join(f'<path d="{T["strand"]}" transform="rotate({45*k})"/>' for k in range(8)) + '</g></svg>')
 f64 = lambda p: base64.b64encode(open(p,'rb').read()).decode()
-CONTACT = {"name": "[Your name]", "role": "Founder, BE Human Labs", "email": "[email@domain.com]", "web": "[yourdomain.com]"}
+CONTACT = {"name": "Shikhar Anand", "role": "Founder, BE Human Labs", "email": "behumanlabs@zohomail.in", "web": "behumanlabs.com"}
 html = f'''<!DOCTYPE html><html><head><meta charset="utf-8"><title>BE Human Labs one-pager</title><style>
 @font-face{{font-family:Gloock;src:url(data:font/ttf;base64,{f64(os.path.join(ROOT, 'public', 'fonts', 'Gloock-Regular.ttf'))})}}
 @font-face{{font-family:Hanken;font-weight:100 900;src:url(data:font/ttf;base64,{f64(os.path.join(ROOT, 'public', 'fonts', 'HankenGrotesk.ttf'))})}}
