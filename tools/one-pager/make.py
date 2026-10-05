@@ -6,10 +6,10 @@ T = json.load(open(os.path.join(ROOT, 'tools', 'logo', 'build', 'mark-paths.json
 mark = lambda color: (f'<svg viewBox="-372 -372 744 744" aria-hidden="true"><g fill="{color}"><path fill-rule="evenodd" d="{T["frame"]}"/>'
         + ''.join(f'<path d="{T["strand"]}" transform="rotate({45*k})"/>' for k in range(8)) + '</g></svg>')
 f64 = lambda p: base64.b64encode(open(p,'rb').read()).decode()
-CONTACT = {"name": "[Your name]", "role": "Founder, BE Human Labs", "email": "[email@domain.com]", "web": "[yourdomain.com]"}
+CONTACT = {"name": "Shikhar Anand", "role": "Founder, BE Human Labs", "email": "behumanlabs@zohomail.in", "web": "behumanlabs.com"}
 html = f'''<!DOCTYPE html><html><head><meta charset="utf-8"><title>BE Human Labs one-pager</title><style>
-@font-face{{font-family:Gloock;src:url(data:font/ttf;base64,{f64(os.path.join(ROOT, 'public', 'fonts', 'Gloock-Regular.ttf'))})}}
-@font-face{{font-family:Hanken;font-weight:100 900;src:url(data:font/ttf;base64,{f64(os.path.join(ROOT, 'public', 'fonts', 'HankenGrotesk.ttf'))})}}
+@font-face{{font-family:Gloock;src:url(data:font/ttf;base64,{f64(os.path.join(ROOT, 'tools', 'fonts', 'Gloock-Regular.ttf'))})}}
+@font-face{{font-family:Hanken;font-weight:100 900;src:url(data:font/ttf;base64,{f64(os.path.join(ROOT, 'tools', 'fonts', 'HankenGrotesk.ttf'))})}}
 @page{{size:A4;margin:0}}
 *{{box-sizing:border-box;margin:0;padding:0}}
 html,body{{width:210mm;height:297mm;overflow:hidden}}
@@ -56,7 +56,7 @@ footer .contact b{{font-family:Gloock,serif;font-weight:400;font-size:11pt}}
 <section class="why pad"><div class="grid">
 <div><div class="label">Why we exist</div><h2>A few people are shaping the future. Everyone else is absorbing it.</h2><p class="soft">The gap isn't about talent. It's about who has been prepared to see what is coming and act on it.</p></div>
 <div><span class="num">2 in 5</span><p>people have had any AI training, though two in three already use AI regularly.</p><cite>University of Melbourne and KPMG, 48,000 people in 47 countries, 2025</cite></div>
-<div><span class="num">55%</span><p>of Indian IT firms saw entry-level employment fall after adopting AI. At mid level, only 25% did.</p><cite>ICRIER, survey of 651 IT firms in 10 Indian cities, 2026</cite></div>
+<div><span class="num">55%</span><p>of Indian IT firms saw entry-level employment fall after adopting AI. At mid level, only 25% did.</p><cite>ICRIER, AI and Jobs: This Time is No Different. 651 IT firms in 10 Indian cities, surveyed Nov 2025 to Jan 2026. Supported by OpenAI.</cite></div>
 </div></section>
 <section class="pad"><div class="label">How the lab works</div><h2>Research, innovation and transformation, run as one engine.</h2>
 <div class="cols c3 rule" style="padding-top:3mm">

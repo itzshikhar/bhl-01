@@ -32,10 +32,10 @@ git push -u origin main
 
 From then on, every push to `main` deploys automatically. Other branches get preview links.
 
-### 3. Your domain
-Your domain is already on Cloudflare. Open the Worker, go to **Settings → Domains & Routes**, and add the domain (and `www` if you want it). Cloudflare sets up DNS and HTTPS for you.
+### 3. Domain
+The site is live at https://behumanlabs.com on the Worker `bhl-01`. The domain is managed in the Cloudflare dashboard: open the Worker and go to **Settings → Domains & Routes** (add `www.behumanlabs.com` there too if you want it). Cloudflare sets up DNS and HTTPS for you.
 
-Then replace `yourdomain.com` in the `og:url` and `og:image` tags in `public/index.html`, so link previews on WhatsApp and LinkedIn show the right image.
+`og:url`, `og:image` and the canonical link in `public/index.html` already point to `https://behumanlabs.com/`, so link previews on WhatsApp and LinkedIn show the right image. Update them if the domain ever changes.
 
 ### 4. Forms
 Submissions stay in the page until you set `formEndpoint` in the `CONFIG` block of `public/index.html`. Options: a Formspree form, a Google Apps Script web app that writes to a Sheet, or a small Worker route in this same project.

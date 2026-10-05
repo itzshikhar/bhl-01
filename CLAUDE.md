@@ -2,6 +2,8 @@
 
 A single-page brand site for BE Human Labs, a human transformation lab. Static HTML, no build step, hosted on Cloudflare Workers (static assets) and deployed from GitHub. The audience is primarily Indian.
 
+Live at https://behumanlabs.com, served by the Cloudflare Worker `bhl-01`. The `name` in `wrangler.jsonc` must stay `bhl-01`, or a push deploys to a different Worker. Custom domains are managed in the Cloudflare dashboard, not in `wrangler.jsonc`.
+
 Read this file before every task. Read `docs/brand-core.md` before changing any copy.
 
 ## Commands
@@ -27,15 +29,23 @@ public/                  everything that is served
   favicon.svg
   be-human-labs-one-pager.pdf   downloaded by "Save my card"
   og-image.png           social preview (1200x630)
-  fonts/                 Gloock and Hanken Grotesk, self-hosted (OFL licences alongside)
+  fonts/                 Gloock and Hanken Grotesk as Latin-subset WOFF2, self-hosted (OFL licences alongside)
 tests/pressure_test.py   scroll-motion and content checks (Playwright)
 tools/logo/              how the logo vector was made; source PNG; build/mark-paths.json
-tools/one-pager/make.py  builds the one-pager PDF from HTML
+tools/one-pager/make.py  builds the one-pager PDF from HTML (reads fonts from tools/fonts/)
+tools/fonts/             full TTF sources of both fonts; the served WOFF2 files are built from these
 docs/                    brand core (content source)
 wrangler.jsonc           Cloudflare config
 ```
 
 `index.html` is the source of truth. There is no template or bundler. Edit it directly.
+
+To rebuild the served fonts (needs `pip install fonttools brotli`), keeping the Latin range and Hanken's full weight axis:
+
+```bash
+U="U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+20B9,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD"
+for f in Gloock-Regular HankenGrotesk; do pyftsubset tools/fonts/$f.ttf --unicodes="$U" --layout-features='*' --flavor=woff2 --output-file=public/fonts/$f.woff2; done
+```
 
 ## Content rules
 
@@ -43,15 +53,26 @@ wrangler.jsonc           Cloudflare config
 - **Audience is Indian.** Every figure must be Indian or genuinely global (multi-country). Never label single-country data as "global". If a figure only exists for one country, name the country or leave it out, and tell the user.
 - **Never round beyond the source.** The source says 39%, so the page says "2 in 5" (the study's own phrasing). Writing 40% is not allowed.
 - **Every big number has a `<cite>` line**, and every evidence item has a `<small>` source. The test checks the big numbers.
-- **Figures in use, with caveats:**
-  - 2 in 5 people have had any AI training; two in three use AI regularly. University of Melbourne and KPMG, 48,000 people, 47 countries, 2025.
-  - 55% of Indian IT firms saw entry-level employment fall after adopting AI; 25% at mid level. ICRIER, *AI and Jobs: This Time is No Different*, 651 IT firms, 10 cities, Nov 2025 to Jan 2026. Supported by OpenAI. Researchers frame it as slower hiring, not job losses; keep the wording "saw entry-level employment fall".
-  - 4% of Indian IT firms trained more than half their workforce in AI. ICRIER, same study.
-  - Indian IT net hiring about 6 lakh (FY22) to about 1.4 lakh (FY26). Xpheno, cited by Nomura, Aug 2026.
-  - Naukri: fresher hiring up 17% YoY, Feb 2026, led by non-IT. Keep this counterpoint next to the hiring figures.
-  - Early-career 19% finding is **US data** (Stanford Digital Economy Lab). It is phrased without a country. Do not promote it to a headline number.
-  - Upwork workload and training figures cover four Western countries; phrased without a country.
-- **Excluded on purpose:** the MIT "95% of pilots" figure (disputed), Bhava × Ekatva (parked), LinkedIn (removed for now), the sources list and the "Where do the figures come from" FAQ (removed by request).
+- **Figures in use.** Every figure on the page, with its source and scope. Keep this list in step with the page.
+  - *Big numbers (`<cite>`)*
+    - **2 in 5** people have had any AI training; two in three use AI regularly. University of Melbourne and KPMG, 48,000 people, 47 countries, 2025. Multi-country.
+    - **55%** of Indian IT firms saw entry-level employment fall after adopting AI; 25% at mid level. ICRIER, *AI and Jobs: This Time is No Different*, 651 IT firms, 10 Indian cities, surveyed Nov 2025 to Jan 2026, supported by OpenAI (all named in the cite). India. Researchers frame it as slower hiring, not job losses; keep the wording "saw entry-level employment fall".
+  - *Divide section evidence (`<small>`)*
+    - Industry produced about 91% of notable AI models in 2025. Stanford AI Index 2026. Global count.
+    - Almost half of people say they have limited knowledge of AI; only 40% of employees say their workplace has a policy or guidance on generative AI use. University of Melbourne and KPMG, 2025. Multi-country. The 40% is a share of employees, not of all respondents; keep "employees" in the wording. Verified against Melbourne Business School's 2025 impact report: https://www.mbs.edu/2025-impact-report/impact-stories/Global-study-reveals-trust-of-AI-remains-a-critical-challenge
+    - Across 25 countries, awareness of and enthusiasm for AI are higher among the highly educated and in wealthier countries. Pew Research Center, October 2025. Multi-country.
+    - In India only 19% are more concerned than excited about AI. Pew Research Center, October 2025. India.
+  - *Growing section evidence (`<small>`)*
+    - 39% of workers' core skills expected to change by 2030; 63% of employers name skill gaps as the biggest barrier. World Economic Forum, Future of Jobs Report 2025. Global.
+    - 59 in 100 workers will need training by 2030; 11 of those are not expected to get it. World Economic Forum, Future of Jobs Report 2025. Global.
+    - Adult literacy stagnated or declined across 31 countries over the past decade. OECD Survey of Adult Skills, December 2024. Multi-country.
+    - 4% of Indian IT firms trained more than half their workforce in AI-related skills. ICRIER, same study. India.
+    - Indian IT net hiring about 6 lakh (FY22) to about 1.4 lakh (FY26). Xpheno, cited by Nomura, August 2026. India.
+    - Fresher hiring in India up 17% YoY, February 2026, led by non-IT. Naukri JobSpeak. India. Keep this counterpoint directly after the hiring figure.
+  - *Systems evidence (`<small>`)*
+    - Meta-analysis of 89 studies: the work environment shapes whether training is applied. Blume, Ford, Baldwin and Huang, *Journal of Management*, 2010. Research synthesis, not country data.
+    - Peer, supervisor and organisational support each predict whether training lasts; peer support most. Hughes, Zajac, Woods and Salas, *Human Factors*, 2020. Research synthesis, not country data.
+- **Excluded on purpose:** the MIT "95% of pilots" figure (disputed), Bhava × Ekatva (parked), LinkedIn (removed for now), the sources list and the "Where do the figures come from" FAQ (removed by request), the Upwork Research Institute 2024 workload and training figures (96% / 77% / 26%; four Western countries only), and the Stanford Digital Economy Lab early-career 19% finding (US data only).
 - **Style:** plain, warm, evidence-led. Sentence case. No em dashes or en dashes (the test fails on them). One message per section: one headline, one supporting line, one visual. Detail goes behind "Read more" or "See the evidence".
 - **Opt-in wording:** "Keep me posted on future updates and opportunities. You can opt out any time."
 - **Wordmark:** always "BE HUMAN LABS" in the header and footer. In running text, "BE Human Labs".
@@ -99,9 +120,9 @@ Payload: `{ email, path, option, chip, message, keep_me_posted, source, time }`.
 
 ## Open items
 
-- [ ] Real name, email and role in `CONFIG` and in `tools/one-pager/make.py` (`CONTACT`), then rebuild the PDF.
-- [ ] Conference name in `CONFIG.events`.
-- [ ] Domain in `og:url` and `og:image` (currently `yourdomain.com`).
+- [x] Real name, email and role in `CONFIG` and in `tools/one-pager/make.py` (`CONTACT`), then rebuild the PDF.
+- [x] Conference name in `CONFIG.events` (`conf`: 18th Ed Leadership International Roundtable).
+- [x] Domain in `og:url`, `og:image` and the canonical link (behumanlabs.com).
 - [ ] `formEndpoint`: a Cloudflare Worker route, Formspree, or Google Apps Script.
 - [ ] Optional `bookingUrl`.
 - [ ] Add the brand core as `docs/brand-core.md`.
@@ -109,5 +130,6 @@ Payload: `{ email, path, option, chip, message, keep_me_posted, source, time }`.
 ## Git
 
 - `main` deploys to production. Use a branch for anything experimental; Cloudflare builds preview URLs for branches.
+- Pushes to `main` run `npx wrangler deploy`; pushes to other branches run `npx wrangler preview`, which needs the top-level `"previews": {}` block in `wrangler.jsonc`. Do not remove the block.
 - Small commits with plain messages, e.g. "Swap divide stat to Melbourne/KPMG 2 in 5".
 - Never commit secrets. Local secrets go in `.dev.vars` (ignored).

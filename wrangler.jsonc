@@ -2,16 +2,14 @@
 // Requests for files in ./public are served directly and are not billed as Worker invocations.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "be-human-labs",
+  "name": "bhl-01",
   "compatibility_date": "2026-10-01",
   "assets": {
     "directory": "./public",
     "not_found_handling": "404-page"
-  }
-  // Custom domain: easiest to add in the dashboard (Worker > Settings > Domains & Routes).
-  // Or uncomment and set your domain, then deploy:
-  // ,"routes": [
-  //   { "pattern": "yourdomain.com", "custom_domain": true },
-  //   { "pattern": "www.yourdomain.com", "custom_domain": true }
-  // ]
+  },
+  // Required for branch previews (npx wrangler preview); empty because the site has no bindings or vars.
+  "previews": {}
+  // Custom domains (behumanlabs.com, www.behumanlabs.com) are managed in the Cloudflare
+  // dashboard under Worker > Settings > Domains & Routes, not here.
 }
