@@ -130,5 +130,6 @@ Payload: `{ email, path, option, chip, message, keep_me_posted, source, time }`.
 ## Git
 
 - `main` deploys to production. Use a branch for anything experimental; Cloudflare builds preview URLs for branches.
+- Pushes to `main` run `npx wrangler deploy`; pushes to other branches run `npx wrangler preview`, which needs the top-level `"previews": {}` block in `wrangler.jsonc`. Do not remove the block.
 - Small commits with plain messages, e.g. "Swap divide stat to Melbourne/KPMG 2 in 5".
 - Never commit secrets. Local secrets go in `.dev.vars` (ignored).

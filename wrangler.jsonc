@@ -7,7 +7,9 @@
   "assets": {
     "directory": "./public",
     "not_found_handling": "404-page"
-  }
+  },
+  // Required for branch previews (npx wrangler preview); empty because the site has no bindings or vars.
+  "previews": {}
   // Custom domains (behumanlabs.com, www.behumanlabs.com) are managed in the Cloudflare
   // dashboard under Worker > Settings > Domains & Routes, not here.
 }
