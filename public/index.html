@@ -103,10 +103,11 @@ details[open] > summary .pm::after{transform:translate(-50%,-50%) rotate(0deg)}
 .brand{display:flex; align-items:center; gap:10px; text-decoration:none; font-family:var(--font-display); font-size:19px; letter-spacing:.05em; margin-right:auto; white-space:nowrap}
 .brand svg{width:34px; height:34px; color:var(--dark-coffee); flex:none}
 .nav{display:flex; gap:var(--s3)}
-.nav a{text-decoration:none; font-weight:500; font-size:15px; padding:8px 0}
+.nav a{text-decoration:none; font-weight:500; font-size:15px; padding:8px 0; white-space:nowrap}
 .nav a:hover{text-decoration:underline; text-underline-offset:6px; text-decoration-thickness:1px}
 .bar .btn{min-height:40px; padding:0 16px; font-size:15px}
 .menu-btn{display:none; background:none; border:0; font-weight:600; font-size:15px; padding:8px 4px; cursor:pointer}
+@media (min-width:760px) and (max-width:959px){ .nav,.bar .wrap{gap:var(--s2)} .brand{font-size:16px; letter-spacing:.03em} .bar .btn{padding:0 12px} }
 @media (max-width:759px){
   .menu-btn{display:block}
   .nav{display:none; position:absolute; left:0; right:0; top:100%; background:var(--ground); border-bottom:1px solid var(--hairline); flex-direction:column; gap:0; padding:8px 20px 16px}
@@ -174,6 +175,7 @@ h1{font-size:clamp(42px,6vw,72px); max-width:14ch}
 .erow h3{font-size:clamp(28px,3.6vw,39px); margin-top:4px}
 .erow p{color:var(--soft); margin-top:var(--s1); max-width:30em}
 .erow .eg{font-size:15px; margin-top:var(--s2); padding-left:var(--s2); border-left:1px solid var(--line)}
+.engine-link{margin-top:var(--s3); padding-left:28px}
 
 /* offerings */
 .rows{margin-top:var(--s4); border-top:1px solid var(--line)}
@@ -264,6 +266,7 @@ form.f{padding:var(--s3) 0 var(--s4); border-bottom:1px solid var(--line)}
     <nav class="nav" id="nav" aria-label="Sections">
       <a href="#why">Why</a>
       <a href="#lab">The lab</a>
+      <a href="/lab/">From the lab</a>
       <a href="#involved">Get involved</a>
       <a href="#" id="cardLink" download>Save my card</a>
     </nav>
@@ -370,6 +373,7 @@ form.f{padding:var(--s3) 0 var(--s4); border-bottom:1px solid var(--line)}
           <p>Changes how people live, for individuals and for groups.</p>
           <p class="eg">For example: running it with real people in their real setting, and checking it is still in use months later.</p></div>
       </div>
+      <p class="engine-link"><a class="tlink" href="/notes/learning-when-answers-are-free/">See the engine at work: Learning when answers are free</a></p>
       <div class="more">
         <details><summary>Why all three <span class="pm" aria-hidden="true"></span></summary><div class="body">
           <p>Research without innovation stays on paper, innovation without research solves the wrong problem, and neither changes anything without transformation. Together they make change both right and real.</p>
