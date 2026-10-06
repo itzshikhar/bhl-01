@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}{{ n.title }} | BE Human Labs{% endblock %}
+{% block description %}{{ n.summary }}{% endblock %}
+{% block robots %}{% if n.status == "unlisted" %}<meta name="robots" content="noindex">{% endif %}{% endblock %}
+{% block og_type %}article{% endblock %}
+{% block og_title %}{{ n.title }}{% endblock %}
+{% block main %}
+<article class="skin" aria-labelledby="note-h">
+  <div class="wrap">
+    <div class="col">
+      <a class="back" href="/lab/">&#8592; From the lab</a>
+      <header class="nhead">
+        <span class="eyebrow">{{ n.type_label }}</span>
+        <h1 id="note-h">{{ n.title }}</h1>
+        <p class="lead">{{ n.summary }}</p>
+        <p class="meta"><span>{{ n.author }}</span><span>{{ n.month }}</span><span>{{ n.read_time }} min read</span>{% if n.status == "gated" %}<span class="chip" id="stateChip">Opening only</span>{% endif %}</p>
+        <div class="ntools">
+{% if n.jump_label and n.jump_to %}
+          <button class="tlink" type="button" data-jump="{{ n.jump_to }}"{% if n.jump_hint %} data-hint="{{ n.jump_hint }}"{% endif %}>{{ n.jump_label }}</button>
+{% endif %}
+          <button class="tlink" type="button" data-share>Share with a colleague</button>
+        </div>
+      </header>
+
+      <div class="body prose">
+        {{ n.opening|safe }}
+{% if n.status == "gated" %}
+
+        <div class="teaser fade prose" id="teaser" aria-hidden="true" inert>
+        {{ n.teaser|safe }}
+        </div>
+
+        <aside class="gate skin-coffee" id="gate" aria-labelledby="gate-h">
+          <h2 id="gate-h">Read the full note.</h2>
+          <p class="lead">Tell us who you are and the rest of the note opens right here. We will also email you a link, so you can come back to it or pass it on.{% if n.covers %} It covers:{% endif %}</p>
+{% if n.covers %}
+          <ul class="plain">
+{% for c in n.covers %}
+            <li>{{ c }}</li>
+{% endfor %}
+          </ul>
+{% endif %}
+          <form id="reqForm" novalidate>
+            <label for="rq-email">Email
+              <input id="rq-email" type="email" inputmode="email" autocomplete="email" placeholder="you@institution.edu" required>
+            </label>
+            <label for="rq-org">Organisation
+              <input id="rq-org" type="text" autocomplete="organization" placeholder="School of Management" required>
+            </label>
+            <label for="rq-role" class="full-w">Your role
+              <select id="rq-role" required>
+                <option value="">Choose one</option>
+                <option>Leadership: dean, principal, director</option>
+                <option>Faculty or teacher</option>
+                <option>Employer or partner</option>
+                <option>Student</option>
+                <option>Other</option>
+              </select>
+            </label>
+            <input class="hp" type="text" name="company_website" id="rq-cw" tabindex="-1" autocomplete="off" aria-hidden="true">
+            <p class="err" id="rq-err" aria-live="polite" hidden></p>
+            <div class="acts">
+              <button class="btn" type="submit">Read the full note</button>
+              <button class="tlink" type="button" data-cta="A 20 minute conversation">Prefer to talk first? Book 20 minutes</button>
+            </div>
+            <p class="small">We use your details to understand who reads our work, to email you this note, and to reply if you get in touch. You can ask us to delete them any time.</p>
+          </form>
+        </aside>
+
+        <div class="prose" id="full" hidden>
+          <p class="welcome" id="welcomeLine" hidden tabindex="-1"></p>
+        {{ n.rest|safe }}
+        </div>
+{% else %}
+        {{ n.rest|safe }}
+{% endif %}
+      </div>
+    </div>
+  </div>
+</article>
+{% endblock %}

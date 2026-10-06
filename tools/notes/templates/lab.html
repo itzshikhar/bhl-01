@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}From the lab | BE Human Labs{% endblock %}
+{% block description %}What the lab is working on, written up as we go. Some pieces are open to everyone. Others we share with partners and institutions on request.{% endblock %}
+{% block og_title %}From the lab{% endblock %}
+{% block main %}
+<section class="skin" aria-labelledby="lab-h">
+  <div class="wrap">
+    <div class="hero">
+      <span class="chip">Research, deep dives and points of view</span>
+      <h1 id="lab-h">From the lab.</h1>
+      <p class="lead">What the lab is working on, written up as we go. Some pieces are open to everyone. Others we share with partners and institutions on request.</p>
+    </div>
+    <div class="filters" role="group" aria-label="Filter by type">
+      <button type="button" data-f="all" aria-pressed="true">All</button>
+      <button type="button" data-f="research" aria-pressed="false">Research notes</button>
+      <button type="button" data-f="deep-dive" aria-pressed="false">Deep dives</button>
+      <button type="button" data-f="pov" aria-pressed="false">Points of view</button>
+    </div>
+    <div class="list">
+{% for n in notes %}
+      <article class="card feature {{ 'skin-pale' if n.featured else 'skin plain' }}" data-type="{{ n.type }}"{% if n.status == "gated" %} data-gated{% endif %}>
+        <p class="meta"><span class="eyebrow">{{ n.type_label }}</span><span>{{ n.month }}</span><span>{{ n.read_time }} min read</span></p>
+        <h2><a class="card-title" href="{{ n.path }}">{{ n.title }}</a></h2>
+        <p class="lead">{{ n.summary }}</p>
+        <div class="cfoot">
+{% if n.status == "gated" %}
+          <span class="access" data-access><svg class="lock" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg><span>Free to read with your email</span></span>
+{% else %}
+          <span class="access">Open to everyone</span>
+{% endif %}
+          <span class="tlink" aria-hidden="true">Read the note</span>
+        </div>
+      </article>
+{% endfor %}
+      <article class="card soon" data-type="deep-dive">
+        <p class="meta"><span class="eyebrow">Deep dive</span><span>In progress</span></p>
+        <h2>The next piece is being written.</h2>
+        <p class="lead">We publish when the thinking holds up, not on a schedule. Leave your email and we will tell you when it is out.</p>
+        <div class="cfoot">
+          <span class="access">Coming soon</span>
+          <button class="tlink" type="button" data-notify>Tell me when it is out</button>
+        </div>
+      </article>
+      <p class="empty" id="empty" hidden>Nothing of this kind yet. Choose All to see everything from the lab.</p>
+    </div>
+  </div>
+</section>
+{% endblock %}
