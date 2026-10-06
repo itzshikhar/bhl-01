@@ -12,12 +12,13 @@ Read this file before every task. Read `docs/brand-core.md` before changing any 
 python3 -m http.server 8000 -d public          # preview at http://localhost:8000
 python3 tests/pressure_test.py                  # run with the preview server up; must print "0 failure(s)"
 python3 tools/one-pager/make.py                 # rebuild public/be-human-labs-one-pager.pdf
+python3 tools/notes/build.py                    # rebuild public/lab/ and public/notes/ from content/notes/
 npx wrangler deploy                             # manual deploy (normally a push to main deploys)
 ```
 
-Test setup, once: `pip install -r tests/requirements.txt && python3 -m playwright install chromium`.
+Test setup, once: `pip install -r tests/requirements.txt && python3 -m playwright install chromium` (this also installs the note build's requirements from `tools/notes/requirements.txt`).
 
-**Run the pressure test after any change to HTML structure, CSS layout, or the script, and fix failures before committing.**
+**Run the pressure test after any change to HTML structure, CSS layout, or the script, and fix failures before committing.** After any change to `content/notes/`, `tools/notes/` or the homepage `CONFIG`, run the note build first: the test fails if `public/` is out of date.
 
 ## Layout
 
@@ -30,16 +31,23 @@ public/                  everything that is served
   be-human-labs-one-pager.pdf   downloaded by "Save my card"
   og-image.png           social preview (1200x630)
   fonts/                 Gloock and Hanken Grotesk as Latin-subset WOFF2, self-hosted (OFL licences alongside)
-tests/pressure_test.py   scroll-motion and content checks (Playwright)
+  css/lab.css            styles for the lab page and notes (part 1 copies the homepage tokens and skins)
+  js/forms.js            shared form submission, used by the homepage and the lab pages
+  js/lab.js              lab page and note behaviour: filters, sign-up gate, Talk to us dialog, share
+  lab/index.html         GENERATED: the From the lab page
+  notes/<slug>/index.html  GENERATED: one page per note
+content/notes/<slug>.md  the notes, Markdown with front matter (source for lab/ and notes/)
+tests/pressure_test.py   scroll-motion, content, form and lab checks (Playwright)
 tools/logo/              how the logo vector was made; source PNG; build/mark-paths.json
 tools/one-pager/make.py  builds the one-pager PDF from HTML (reads fonts from tools/fonts/)
 tools/forms/             Apps Script for form submissions (reference copy) and its setup notes
+tools/notes/             build.py, its templates and requirements: turns content/notes/ into public/lab/ and public/notes/
 tools/fonts/             full TTF sources of both fonts; the served WOFF2 files are built from these
 docs/                    brand core (content source)
 wrangler.jsonc           Cloudflare config
 ```
 
-`index.html` is the source of truth. There is no template or bundler. Edit it directly.
+`index.html` is the source of truth for the homepage. There is no template or bundler. Edit it directly. The lab page and notes are the one exception: they are generated from `content/notes/` by `tools/notes/build.py` (see From the lab below). Never edit `public/lab/` or `public/notes/` by hand.
 
 To rebuild the served fonts (needs `pip install fonttools brotli`), keeping the Latin range and Hanken's full weight axis:
 
@@ -86,7 +94,7 @@ for f in Gloock-Regular HankenGrotesk; do pyftsubset tools/fonts/$f.ttf --unicod
 - Square corners (2px max), hairline rules, no shadows, no gradients. Spacing scale 8, 16, 24, 40, 64, 96.
 - **Actions:** one filled button and one text link per section at most.
 - **Icons:** plus that turns into a minus for accordions (`.pm`); chevron down that flips up for options that expand in place; up-right arrow for links that leave the page. Do not use logo strands as icons.
-- Mobile first. Check 360px and 390px widths; the header must stay on one line.
+- Mobile first. Check 360px and 390px widths; the header must stay on one line. The desktop nav has five links, so from 760px to 959px it uses tighter gaps and a smaller wordmark to stay on one line (same rule in `index.html` and `lab.css`). Check 760px after adding anything to the header.
 
 ## Logo rules
 
@@ -117,9 +125,9 @@ for f in Gloock-Regular HankenGrotesk; do pyftsubset tools/fonts/$f.ttf --unicod
 - `onePagerUrl`: the "Save my card" download.
 - `events`: `?src=<key>` shows "Met at <name>? Welcome." and tags each lead with its source.
 
-**Submissions (Google Sheet).**
+**Submissions (Google Sheet).** The request code is shared in `public/js/forms.js` (`BHL.post`), used by the homepage and the lab pages.
 - **Request:** `POST` to `formEndpoint`, body `JSON.stringify(payload)`, header `Content-Type: text/plain;charset=utf-8` and no other custom headers. That keeps it a simple request with no CORS preflight, which Apps Script cannot answer. Fetch follows Apps Script's redirect (the default). Do not switch to `application/json` or add headers.
-- **Payload:** `{ email, path, option, chip, message, keep_me_posted, source, site, time, company_website }`. `site` is `location.hostname`.
+- **Payload:** `{ email, path, option, chip, message, keep_me_posted, source, site, time, company_website }`. `site` is `location.hostname`. Note sign-ups add `note_title` and `note_url` (see From the lab).
 - **Reply:** `{"ok":true}`, `{"ok":false,"error":"email"}` or `{"ok":false,"error":"server"}`.
 - **While sending:** the submit button is disabled and reads "Sending". The request times out after 15 seconds (AbortController).
 - **On `ok:true`:** the usual confirmation. The lead is also logged to the console.
@@ -130,7 +138,41 @@ for f in Gloock-Regular HankenGrotesk; do pyftsubset tools/fonts/$f.ttf --unicod
 - **The script** is in the "BE Human Labs leads" Sheet under Extensions > Apps Script, deployed as a web app (Execute as Me, access Anyone). A reference copy and setup notes are in `tools/forms/` (`apps-script.gs`, `README.md`). Run `setup()` once from the editor after any change to permissions.
 - **New version, same URL.** Update the script only through Deploy > Manage deployments > edit > New version. A new deployment changes the URL and silently breaks the forms until `formEndpoint` is updated.
 - **Previews post to the same Sheet.** Branch preview builds use the same endpoint; the Site column (`location.hostname`: `behumanlabs.com` or `*.workers.dev`) tells them apart.
+- **Emails.** The script alerts us for every row ("New reader:" for note sign-ups, "New lead:" otherwise) and, for note sign-ups only, sends the reader a copy with the note link: only for URLs starting `https://behumanlabs.com/notes/`, at most once per address per note every six hours. Details in `tools/forms/README.md`.
 - **Tests never hit the real endpoint.** `tests/pressure_test.py` intercepts every `script.google.com` and `script.googleusercontent.com` request with Playwright and answers it with a mock.
+
+## From the lab
+
+Notes are written in `content/notes/<slug>.md` and built into static pages. Cloudflare still just serves `public/`, so the generated files are committed.
+
+**Build.** `python3 tools/notes/build.py` writes `public/lab/index.html` and `public/notes/<slug>/index.html`, clearing both folders first. It reads `CONFIG.formEndpoint`, `CONFIG.email`, the canonical site URL and the logo `<symbol>` from `public/index.html`, so change those there and rebuild. It refuses notes with em or en dashes. The pressure test builds into a temp folder and fails if `public/` differs.
+
+**Front matter.**
+- Required: `title`, `summary`, `type` (`research`, `deep-dive` or `pov`), `status`, `date` (YYYY-MM-DD; shown as "October 2026"), `read_time` (minutes), `author`, `featured` (true gives the card the pale skin).
+- Optional: `covers` (the bullet list on the sign-up gate), and `jump_label`, `jump_to`, `jump_hint` for a "skip to" link in the note header (`jump_to` is an element id in the note; `jump_hint` is the message shown if the reader has not signed up yet).
+
+**Markers in the body.**
+- `<!-- more -->` (required) ends the opening that everyone can read.
+- `<!-- fade -->` (required for gated notes) marks where the faded preview under the gate stops. It can sit inside an HTML block; the build closes any open tags.
+- Prose is Markdown. Diagrams, rows, cards and calls to action are plain HTML blocks using the classes in `lab.css`. Keep each HTML block free of blank lines.
+
+**Statuses.**
+- `draft`: not built.
+- `unlisted`: built at `/notes/<slug>/` with `noindex`, not listed on the lab page.
+- `public`: built and listed, no gate.
+- `gated`: listed; the opening and a faded preview are visible, the rest opens after the sign-up form.
+
+**To add a note:** copy the front matter from an existing note, write the body with the markers, set `status: draft` while writing, then `public` or `gated`. Run `python3 tools/notes/build.py`, start the preview server, run the pressure test, and commit the Markdown and the generated pages together. The lab page lists public and gated notes newest first, followed by the "next piece is being written" card.
+
+**The sign-up wall.** Gated notes ask for email, organisation and role (Leadership: dean, principal, director / Faculty or teacher / Employer or partner / Student / Other), all required, plus the honeypot. On submit the note opens at once, whether or not the request succeeds (failures are logged to the console), and the reader is remembered in `localStorage` (`bhl-reader`), so every gated note opens directly on later visits and the lab card reads "Open to you". **The full text is in the page source: this is a sign-up wall for reaching readers, not access control.** Never put anything confidential in a gated note.
+
+**Sheet tagging.**
+- Note sign-up: `path` "read", `option` = note title, `chip` = role, `message` = "Organisation: <org>", `keep_me_posted` false, `source` = the `?src=` value or "note", plus `note_title` and `note_url` (`https://behumanlabs.com/notes/<slug>/`, always the production URL).
+- Calls to action (`data-cta="<topic>"` on any button in a note): open the Talk to us dialog (email prefilled from the reader, message optional, opt-in box, honeypot) and post `path` "talk", `option` = the topic, `source` "note:<slug>". Success, error and honeypot behaviour match the homepage forms. Current topics in the first note: A 20 minute conversation, Barrier review, Faculty workshop: map a course, People: faculty coaching, Products: the platform, Programs: program design, Systems: problem bank, Phase 1: discovery conversation, Roadmap PDF for leadership, Faculty pilot group, Partner: bring a real problem.
+- "Tell me when the next note is out" (`data-notify`): `path` "join", `option` "Next note", `keep_me_posted` true; `source` "lab" on the lab page.
+- "Share with a colleague" copies the production note URL. A `data-jump` link scrolls to its target, or to the gate if the reader has not signed up.
+
+**Styles.** `public/css/lab.css` part 1 is copied from the homepage (fonts, tokens, skins, base, header, footer, buttons, form fields) and must stay identical; the pressure test compares `:root` and the skins. Part 2 is the From the lab design. Change a token in both files.
 
 ## Open items
 
@@ -140,6 +182,7 @@ for f in Gloock-Regular HankenGrotesk; do pyftsubset tools/fonts/$f.ttf --unicod
 - [x] `formEndpoint`: Google Apps Script writing to the "BE Human Labs leads" Sheet (see `tools/forms/`).
 - [ ] Optional `bookingUrl`.
 - [ ] Add the brand core as `docs/brand-core.md`.
+- [ ] Roadmap PDF for leadership: the note offers "Get the roadmap as a PDF" (a Talk to us request today); make the PDF when ready.
 
 ## Git
 
