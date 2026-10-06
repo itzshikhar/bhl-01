@@ -550,6 +550,7 @@ form.f{padding:var(--s3) 0 var(--s4); border-bottom:1px solid var(--line)}
   </div>
 </footer>
 
+<script src="js/forms.js"></script>
 <script>
 /* ---------- edit here ---------- */
 const CONFIG = {
@@ -769,30 +770,20 @@ document.addEventListener("submit", async e => {
   const form = e.target, btn = form.querySelector('button[type="submit"]'), err = $("#err");
   if (btn.disabled) return;
   const el = $("#em"), email = el ? el.value.trim() : state.email;
-  const badEmail = () => { err.textContent = "Enter a valid email so we can reply."; err.hidden = false; el && el.focus(); };
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { badEmail(); return; }
+  const badEmail = () => { err.textContent = BHL.EMAIL_MSG; err.hidden = false; el && el.focus(); };
+  if (!BHL.EMAIL_RE.test(email)) { badEmail(); return; }
   err.hidden = true;
   const o = find(state.open);
   const lead = {email, path: state.tab, option: o.id, chip: state.chip, message: $("#msg") ? $("#msg").value.trim() : "",
     keep_me_posted: o.emailOnly ? true : $("#keep").checked, source: src || "direct", site: location.hostname,
     time: new Date().toISOString(), company_website: $("#cw").value};
   if (CONFIG.formEndpoint) {
-    // A text/plain POST with no other custom headers is a simple request, so there is no CORS preflight (Apps Script can't answer one).
-    const label = btn.textContent, ctrl = new AbortController(), timer = setTimeout(() => ctrl.abort(), 15000);
-    btn.disabled = true; btn.textContent = "Sending"; form.setAttribute("aria-busy", "true");
-    let res = null;
-    try {
-      const r = await fetch(CONFIG.formEndpoint, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify(lead), signal: ctrl.signal});
-      res = r.ok ? await r.json() : null;
-    } catch (x) { res = null; }
-    finally { clearTimeout(timer); btn.disabled = false; btn.textContent = label; form.removeAttribute("aria-busy"); }
-    if (!res || res.ok !== true) {
+    const result = await BHL.post(CONFIG.formEndpoint, lead, btn, form);   // public/js/forms.js
+    if (result !== "ok") {
       if (!form.isConnected) return;
-      if (res && res.error === "email") { badEmail(); return; }
+      if (result === "email") { badEmail(); return; }
       // Nothing is cleared: the visitor's email, topic and message stay in the form.
-      const subject = `BE Human Labs: ${o.title}${state.chip ? ` (${state.chip})` : ""}`;
-      const href = `mailto:${CONFIG.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lead.message)}`;
-      err.innerHTML = `That didn't go through. Please try again, or email us at <a href="${esc(href)}">${esc(CONFIG.email)}</a>.`;
+      err.innerHTML = BHL.failHTML(CONFIG.email, `BE Human Labs: ${o.title}${state.chip ? ` (${state.chip})` : ""}`, lead.message);
       err.hidden = false;
       return;
     }
