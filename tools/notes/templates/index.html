@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% set words = {1: "One", 2: "Two", 3: "Three", 4: "Four", 5: "Five", 6: "Six"} %}
+{% set free_count = words.get(free|length, free|length|string) %}
+{% block title %}From the lab | BE Human Labs{% endblock %}
+{% block description %}What the lab is working on, written up as we go. For school leaders, teachers and parents working out what school is for when answers are free.{% endblock %}
+{% block og_title %}From the lab{% endblock %}
+{% block main %}
+<section class="skin" aria-labelledby="lab-h">
+  <div class="wrap">
+    <div class="hero">
+      <span class="chip">Research notes, deep dives and points of view</span>
+      <h1 id="lab-h">From the lab.</h1>
+      <p class="lead">What the lab is working on, written up as we go. This series is for school leaders, teachers and parents working out what school is for when answers are free. {{ free_count }} pieces are open to everyone. The rest we share with schools on request.</p>
+    </div>
+
+    <div class="shelf" id="freeShelf">
+      <div class="shelf-head"><h2>Free to read.</h2><p>{{ free_count }} pieces open to everyone. A good place to start.</p></div>
+      <div class="list three">
+{% for n in free %}
+        <article class="card {{ ['skin-coffee', 'skin-pale', 'skin'][loop.index0 % 3] }}" data-type="{{ n.type }}" data-access="free">
+          <p class="meta"><span class="eyebrow">{{ n.type_label }}</span><span>{{ n.minutes }} min read</span></p>
+          <h2><a class="card-title" href="{{ n.path }}">{{ n.title }}</a></h2>
+          <p class="lead">{{ n.dek }}</p>
+          <div class="cfoot"><span class="access">Free to read</span><span class="tlink" aria-hidden="true">Read the piece</span></div>
+        </article>
+{% endfor %}
+      </div>
+    </div>
+
+    <div class="shelf" id="reqShelf">
+      <div class="shelf-head"><h2>Shared with schools on request.</h2><p>Read the opening of any piece. Request the full version and we will reply within three working days after the conference.</p></div>
+      <div class="filters" role="group" aria-label="Filter by type">
+        <button type="button" data-f="all" aria-pressed="true">All</button>
+        <button type="button" data-f="research" aria-pressed="false">Research notes</button>
+        <button type="button" data-f="deep-dive" aria-pressed="false">Deep dives</button>
+        <button type="button" data-f="pov" aria-pressed="false">Points of view</button>
+      </div>
+      <div class="list req">
+{% for n in requested %}
+        <article class="card {{ {'research': 'skin-pale', 'deep-dive': 'skin', 'pov': 'skin-coffee'}[n.type] }}" data-type="{{ n.type }}" data-access="request">
+          <p class="meta"><span class="eyebrow">{{ n.type_label }}</span><span>{{ n.minutes }} min read</span></p>
+          <h2><a class="card-title" href="{{ n.path }}">{{ n.title }}</a></h2>
+          <p class="lead">{{ n.dek }}</p>
+          <div class="cfoot"><span class="access">{{ lock|safe }}<span>Shared on request</span></span><span class="tlink" aria-hidden="true">Read the opening</span></div>
+        </article>
+{% endfor %}
+        <p class="empty" id="empty" hidden>Nothing of this kind yet.</p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

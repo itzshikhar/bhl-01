@@ -12,7 +12,7 @@ Read this file before every task. Read `docs/brand-core.md` before changing any 
 python3 -m http.server 8000 -d public          # preview at http://localhost:8000
 python3 tests/pressure_test.py                  # run with the preview server up; must print "0 failure(s)"
 python3 tools/one-pager/make.py                 # rebuild public/be-human-labs-one-pager.pdf
-python3 tools/notes/build.py                    # rebuild public/lab/ and public/notes/ from content/notes/
+python3 tools/notes/build.py                    # rebuild public/notes/ from content/notes/
 npx wrangler deploy                             # manual deploy (normally a push to main deploys)
 ```
 
@@ -31,23 +31,24 @@ public/                  everything that is served
   be-human-labs-one-pager.pdf   downloaded by "Save my card"
   og-image.png           social preview (1200x630)
   fonts/                 Gloock and Hanken Grotesk as Latin-subset WOFF2, self-hosted (OFL licences alongside)
-  css/lab.css            styles for the lab page and notes (part 1 copies the homepage tokens and skins)
-  js/forms.js            shared form submission, used by the homepage and the lab pages
-  js/lab.js              lab page and note behaviour: filters, sign-up gate, Talk to us dialog, share
-  lab/index.html         GENERATED: the From the lab page
-  notes/<slug>/index.html  GENERATED: one page per note
-content/notes/<slug>.md  the notes, Markdown with front matter (source for lab/ and notes/)
+  _redirects             Cloudflare redirects: /lab/ to /notes/ (301)
+  css/lab.css            styles for the From the lab index and pieces (part 1 copies the homepage tokens and skins)
+  js/forms.js            the shared profile and form submission, used by every form on every page
+  js/lab.js              index and piece behaviour: filter, sign-up wall, request panel, Talk to us and Join dialog, share
+  notes/index.html       GENERATED: the From the lab index
+  notes/<slug>/index.html  GENERATED: one page per piece
+content/notes/<slug>.html  the pieces: HTML with front matter (source for public/notes/)
 tests/pressure_test.py   scroll-motion, content, form and lab checks (Playwright)
 tools/logo/              how the logo vector was made; source PNG; build/mark-paths.json
 tools/one-pager/make.py  builds the one-pager PDF from HTML (reads fonts from tools/fonts/)
 tools/forms/             Apps Script for form submissions (reference copy) and its setup notes
-tools/notes/             build.py, its templates and requirements: turns content/notes/ into public/lab/ and public/notes/
+tools/notes/             build.py, its templates and requirements: turns content/notes/ into public/notes/
 tools/fonts/             full TTF sources of both fonts; the served WOFF2 files are built from these
 docs/                    brand core (content source)
 wrangler.jsonc           Cloudflare config
 ```
 
-`index.html` is the source of truth for the homepage. There is no template or bundler. Edit it directly. The lab page and notes are the one exception: they are generated from `content/notes/` by `tools/notes/build.py` (see From the lab below). Never edit `public/lab/` or `public/notes/` by hand.
+`index.html` is the source of truth for the homepage. There is no template or bundler. Edit it directly. From the lab is the one exception: it is generated from `content/notes/` by `tools/notes/build.py` (see From the lab below). Never edit `public/notes/` by hand.
 
 To rebuild the served fonts (needs `pip install fonttools brotli`), keeping the Latin range and Hanken's full weight axis:
 
@@ -94,7 +95,14 @@ for f in Gloock-Regular HankenGrotesk; do pyftsubset tools/fonts/$f.ttf --unicod
 - Square corners (2px max), hairline rules, no shadows, no gradients. Spacing scale 8, 16, 24, 40, 64, 96.
 - **Actions:** one filled button and one text link per section at most.
 - **Icons:** plus that turns into a minus for accordions (`.pm`); chevron down that flips up for options that expand in place; up-right arrow for links that leave the page. Do not use logo strands as icons.
-- Mobile first. Check 360px and 390px widths; the header must stay on one line. The desktop nav has five links, so from 760px to 959px it uses tighter gaps and a smaller wordmark to stay on one line (same rule in `index.html` and `lab.css`). Check 760px after adding anything to the header.
+- Mobile first. Check 360px and 390px widths; the header must stay on one line. The nav has five links (Why, How we work, From the lab, Get involved, Save my card), so from 760px to 959px the header uses tighter gaps, 20px side padding and a 15px wordmark to stay on one line (same rule in `index.html` and `lab.css`). Check 760px after changing anything in the header.
+
+### Exceptions for notes
+
+The From the lab pages (`public/css/lab.css`, part 2) follow the approved library design, which departs from the rules above in these places only. Do not spread them to the homepage.
+- **The fade gradient.** The opening of a free or request piece fades out over the sign-up wall or request panel (`.fade::after`, a linear gradient to the ground colour).
+- **Round bullets and dots.** List bullets (`ul.plain`), timeline dots (`ol.road`) and score dots (`.score`) are circles, not square.
+- **More than one action per section.** Pieces carry several calls to action (nudges, offer cards, the three-path panel), as approved.
 
 ## Logo rules
 
@@ -125,52 +133,72 @@ for f in Gloock-Regular HankenGrotesk; do pyftsubset tools/fonts/$f.ttf --unicod
 - `onePagerUrl`: the "Save my card" download.
 - `events`: `?src=<key>` shows "Met at <name>? Welcome." and tags each lead with its source.
 
-**Submissions (Google Sheet).** The request code is shared in `public/js/forms.js` (`BHL.post`), used by the homepage and the lab pages.
-- **Request:** `POST` to `formEndpoint`, body `JSON.stringify(payload)`, header `Content-Type: text/plain;charset=utf-8` and no other custom headers. That keeps it a simple request with no CORS preflight, which Apps Script cannot answer. Fetch follows Apps Script's redirect (the default). Do not switch to `application/json` or add headers.
-- **Payload:** `{ email, path, option, chip, message, keep_me_posted, source, site, time, company_website }`. `site` is `location.hostname`. Note sign-ups add `note_title` and `note_url` (see From the lab).
-- **Reply:** `{"ok":true}`, `{"ok":false,"error":"email"}` or `{"ok":false,"error":"server"}`.
-- **While sending:** the submit button is disabled and reads "Sending". The request times out after 15 seconds (AbortController).
-- **On `ok:true`:** the usual confirmation. The lead is also logged to the console.
-- **On `error:"email"`:** the inline "Enter a valid email so we can reply." message.
-- **On anything else** (`error:"server"`, network failure, timeout, a bad response): no confirmation, everything the visitor typed stays in the form, and an inline message reads "That didn't go through. Please try again, or email us at <CONFIG.email>." The email is a `mailto:` link with the subject (option and topic) and message prefilled.
-- **Honeypot:** every form has a hidden `company_website` field (class `.hp`, off-screen rather than `display:none`, `aria-hidden="true"`, `tabindex="-1"`, `autocomplete="off"`). Its value goes in the payload; the script quietly drops any submission where it is filled.
-- **Privacy line** under each submit button: "We use your email only to reply and, if you opt in, to send updates. You can ask us to delete it any time."
-- **The script** is in the "BE Human Labs leads" Sheet under Extensions > Apps Script, deployed as a web app (Execute as Me, access Anyone). A reference copy and setup notes are in `tools/forms/` (`apps-script.gs`, `README.md`). Run `setup()` once from the editor after any change to permissions.
+**One profile for every form.** Every form on every page (homepage Talk to us and Join the movement, the sign-up wall, the request panel, the Talk to us and Join dialogs on the pieces) uses the same profile, rendered and read by `public/js/forms.js` (`BHL.mount`, `BHL.readProfile`):
+- **Fields:** Name, Email, School or organisation, Role (all required; Role is free text, placeholder "e.g. Principal, Teacher, Parent, Founder", no dropdown), WhatsApp (optional, hint "We'll only use this to reply to you").
+- **Errors:** "Add your name.", "Enter a valid email so we can reply.", "Add your school or organisation.", "Add your role, for example Principal or Teacher."
+- **Remembered** in `localStorage` (`bhl-profile`, wrapped in try/catch) after a successful submission, or at once for a sign-up. When known, the fields are replaced by "Sending as <Name>, <Role> at <Organisation> · Change"; Change forgets it on this device and shows empty fields.
+- **Consent:** "Keep me posted on future updates and opportunities. You can opt out any time." on every form, **unticked by default**, and unticked again every time the Talk to us or Join dialog opens. The one exception is the homepage "Keep me updated" option: choosing it is the consent, so it shows "You'll get occasional updates. You can opt out any time." instead of the checkbox and always sends `keep_me_posted` true.
+- **Under every form:** "You need to be 18 or over to sign up." and "We use your details to understand who reads our work, to reply to you, and, if you tick the box, to send updates. You can ask us to delete them any time."
+- **Honeypot:** every form has a hidden `company_website` field (class `.hp`, off-screen rather than `display:none`, `aria-hidden="true"`, `tabindex="-1"`, `autocomplete="off"`). The script quietly drops any submission where it is filled.
+
+**Submissions (Google Sheet).**
+- **Request:** `POST` to `formEndpoint` (`BHL.post`), body `JSON.stringify(payload)`, header `Content-Type: text/plain;charset=utf-8` and no other custom headers. That keeps it a simple request with no CORS preflight, which Apps Script cannot answer. Do not switch to `application/json` or add headers.
+- **Payload, every form:** `{ name, email, org, role, whatsapp, action, item, detail, keep_me_posted, source, site, time, company_website }` (`BHL.lead`).
+- **Actions:**
+  - `signup`: first read of a free piece; `item` = slug.
+  - `open`: a known profile opens another free piece; `item` = slug; sent once per piece per device (`bhl-opened` in `localStorage`).
+  - `request`: Request access on a request piece; `item` = slug; `detail` = "What would you use it for?".
+  - `talk`: homepage Talk to us (`item` = the option, plus the chip, e.g. "Ask or suggest: Question"; `detail` = the message), and "Prefer to talk first? Book 20 minutes" on a request piece (`item` "A 20 minute conversation").
+  - `join`: homepage Join the movement (`item` = the option and chip; `detail` = the message).
+  - `cta`: a call to action inside a piece; `item` = the `data-cta` text; `detail` = "note:<slug>", then " | " and the message if there is one.
+- **source:** the `?src=` value the visitor arrived with this visit (kept in `sessionStorage`), or "site". `site` is `location.hostname`.
+- **Conference key:** `CONFIG.events` has `conf` (18th Ed Leadership International Roundtable) and `edl` (Ed Leadership). `?src=edl` shows "Met at Ed Leadership? Welcome." on the homepage and tags every submission that visit with source `edl`.
+- **Reply:** `{"ok":true}`, `{"ok":false,"error":"email"}` or `{"ok":false,"error":"server"}`. While sending, the button is disabled and reads "Sending"; the request times out after 15 seconds.
+- **On anything but ok** (except the sign-up wall, which opens regardless): no confirmation, everything typed stays, and "That didn't go through. Please try again, or email us at <CONFIG.email>." with a prefilled `mailto:` link. `error:"email"` shows the email message instead.
+
+**The Activity tab.** The script (`tools/forms/apps-script.gs`, live copy in the "BE Human Labs leads" Sheet under Extensions > Apps Script, deployed as a web app: Execute as Me, access Anyone) writes one row per submission to the **Activity** tab: Received, Name, Email, Organisation, Role, WhatsApp, Action, Article or topic, Detail, Keep me posted, Source, Site, Status, Emailed. Status and Emailed are for us to fill in. No email goes out per submission; one summary goes out each evening at about 21:00 IST. Run `setup()` once after deploying (it schedules the summary) and set the project time zone to India Standard Time. Old `path`/`option` payloads are still accepted (`read` maps to `signup`). Details in `tools/forms/README.md`.
 - **New version, same URL.** Update the script only through Deploy > Manage deployments > edit > New version. A new deployment changes the URL and silently breaks the forms until `formEndpoint` is updated.
-- **Previews post to the same Sheet.** Branch preview builds use the same endpoint; the Site column (`location.hostname`: `behumanlabs.com` or `*.workers.dev`) tells them apart.
-- **Emails.** The script alerts us for every row ("New reader:" for note sign-ups, "New lead:" otherwise) and, for note sign-ups only, sends the reader a copy with the note link: only for URLs starting `https://behumanlabs.com/notes/`, at most once per address per note every six hours. Details in `tools/forms/README.md`.
-- **Tests never hit the real endpoint.** `tests/pressure_test.py` intercepts every `script.google.com` and `script.googleusercontent.com` request with Playwright and answers it with a mock.
+- **Previews post to the same Sheet.** The Site column (`behumanlabs.com` or `*.workers.dev`) tells them apart.
+- **Tests never hit the real endpoint.** `tests/pressure_test.py` intercepts every `script.google.com` and `script.googleusercontent.com` request and answers it with a mock.
 
 ## From the lab
 
-Notes are written in `content/notes/<slug>.md` and built into static pages. Cloudflare still just serves `public/`, so the generated files are committed.
+A library of pieces for school leaders, teachers and parents, at `/notes/` (`/lab/` redirects there permanently). Pieces are written in `content/notes/<slug>.html` and built into static pages; the generated pages are committed, so Cloudflare still just serves `public/`.
 
-**Build.** `python3 tools/notes/build.py` writes `public/lab/index.html` and `public/notes/<slug>/index.html`, clearing both folders first. It reads `CONFIG.formEndpoint`, `CONFIG.email`, the canonical site URL and the logo `<symbol>` from `public/index.html`, so change those there and rebuild. It refuses notes with em or en dashes. The pressure test builds into a temp folder and fails if `public/` differs.
+**Access and status.** Each piece has an `access` and a `status`:
+- `access: free` + `status: published`: listed on the index under "Free to read". The full text is in the page, behind the sign-up wall.
+- `access: request` + `status: published`: listed under "Shared with schools on request" with a lock. **Only the opening is built**: the opening, a fade (the first section's kicker and heading over placeholder lines) and the request panel, which lists every one of the piece's section headings. Its sources list sits after `<!-- more -->`, so it stays locked too; the stats in the opening carry their own `.cite` lines.
+- `status: unlisted`: built at its URL with `noindex`, listed nowhere, and linked from nowhere (the pressure test checks that no other page links to it). Learning when answers are free is free and unlisted. The homepage engine link ("See the engine at work: The question has changed") points to a published free piece.
+- `status: draft`: not built.
 
-**Front matter.**
-- Required: `title`, `summary`, `type` (`research`, `deep-dive` or `pov`), `status`, `date` (YYYY-MM-DD; shown as "October 2026"), `read_time` (minutes), `author`, `featured` (true gives the card the pale skin).
-- Optional: `covers` (the bullet list on the sign-up gate), and `jump_label`, `jump_to`, `jump_hint` for a "skip to" link in the note header (`jump_to` is an element id in the note; `jump_hint` is the message shown if the reader has not signed up yet).
+**Never build locked text.** For a request piece, nothing after `<!-- more -->` may be written to `public/`: not in the page, not in the fade, not in a data attribute. The text stays in the repo for Phase B. Only the `h2` section headings leave the file (they are listed in the request panel on purpose). The build checks every paragraph, and the pressure test checks every sentence of locked text against every served file. If you add a teaser, build it from the opening or the headings, never from the text after the marker.
 
-**Markers in the body.**
-- `<!-- more -->` (required) ends the opening that everyone can read.
-- `<!-- fade -->` (required for gated notes) marks where the faded preview under the gate stops. It can sit inside an HTML block; the build closes any open tags.
-- Prose is Markdown. Diagrams, rows, cards and calls to action are plain HTML blocks using the classes in `lab.css`. Keep each HTML block free of blank lines.
+**The sign-up wall (free pieces).** Opening, fade, then the profile form with "Read the full article". On submit it sends `signup` and reveals the text at once, even if the request fails (failures are logged to the console). Any later free piece opens directly for a known profile and sends `open` once per piece per device. **The full text is in the page source: this is a sign-up wall for reaching readers, not access control.** Never put anything confidential in a free piece.
 
-**Statuses.**
-- `draft`: not built.
-- `unlisted`: built at `/notes/<slug>/` with `noindex`, not listed on the lab page.
-- `public`: built and listed, no gate.
-- `gated`: listed; the opening and a faded preview are visible, the rest opens after the sign-up form.
+**The request panel (request pieces).** Opening, fade, then the profile (prefilled when known), "What would you use it for?" (optional) and "Request access". Success shows "Request received." with "We read every request ourselves and will reply within three working days after the conference." and links to the free pieces. "Prefer to talk first? Book 20 minutes" opens Talk to us.
 
-**To add a note:** copy the front matter from an existing note, write the body with the markers, set `status: draft` while writing, then `public` or `gated`. Run `python3 tools/notes/build.py`, start the preview server, run the pressure test, and commit the Markdown and the generated pages together. The lab page lists public and gated notes newest first, followed by the "next piece is being written" card.
+**Calls to action.** A `data-cta="<text>"` button anywhere in a piece opens a dialog, routed by the text's prefix: "Share your story..." and "Join the movement..." open **Join the movement**; everything else ("Talk to us...", "Request...") opens **Talk to us**. Both send `action` "cta", `item` = the text, `detail` = "note:<slug>" plus any message, with the profile prefilled. Start every new `data-cta` with one of those four prefixes. "Share with a colleague" copies the production URL. A `data-jump` link scrolls to its target, or to the wall or panel when the reader cannot see it yet.
 
-**The sign-up wall.** Gated notes ask for email, organisation and role (Leadership: dean, principal, director / Faculty or teacher / Employer or partner / Student / Other), all required, plus the honeypot. On submit the note opens at once, whether or not the request succeeds (failures are logged to the console), and the reader is remembered in `localStorage` (`bhl-reader`), so every gated note opens directly on later visits and the lab card reads "Open to you". **The full text is in the page source: this is a sign-up wall for reaching readers, not access control.** Never put anything confidential in a gated note.
+**Front matter** (YAML between `---` lines, then the body as plain HTML):
+- Required: `title`, `dek` (one or two sentences for the card), `type` (`research`, `deep-dive` or `pov`), `access` (`free` or `request`), `status` (`draft`, `unlisted` or `published`), `date` (e.g. "October 2026"), `author` ("Shikhar Anand, Founder"), `related` (list of slugs; shown as "Next from the lab" on free pieces).
+- Optional: `lead` (the page's standfirst, if different from `dek`), `eyebrow` (e.g. "Deep dive · Edition one"), `order` (position on the index), `jump_label` and `jump_to` (a "skip to" link and the id it targets).
 
-**Sheet tagging.**
-- Note sign-up: `path` "read", `option` = note title, `chip` = role, `message` = "Organisation: <org>", `keep_me_posted` false, `source` = the `?src=` value or "note", plus `note_title` and `note_url` (`https://behumanlabs.com/notes/<slug>/`, always the production URL).
-- Calls to action (`data-cta="<topic>"` on any button in a note): open the Talk to us dialog (email prefilled from the reader, message optional, opt-in box, honeypot) and post `path` "talk", `option` = the topic, `source` "note:<slug>". Success, error and honeypot behaviour match the homepage forms. Current topics in the first note: A 20 minute conversation, Barrier review, Faculty workshop: map a course, People: faculty coaching, Products: the platform, Programs: program design, Systems: problem bank, Phase 1: discovery conversation, Roadmap PDF for leadership, Faculty pilot group, Partner: bring a real problem.
-- "Tell me when the next note is out" (`data-notify`): `path` "join", `option` "Next note", `keep_me_posted` true; `source` "lab" on the lab page.
-- "Share with a colleague" copies the production note URL. A `data-jump` link scrolls to its target, or to the gate if the reader has not signed up.
+**Body rules.**
+- Put `<!-- more -->` on its own line where the open opening ends, normally just before the first "Part one" kicker. (In A note for parents on AI it sits after the paragraph ending "if someone tells them what to look for.")
+- Components are HTML blocks using the classes in `lab.css`: `.stats` (`.two` for two), `.bars`/`.brow`, `.shift` (from and to), `.matrix` (2x2), `.vtrack` (ladder), `ol.road` (timelines), `.four` (`.three`), `.paths` inside `.cta` (three paths), `.letter`, `.try`, `.rows`, `.offer`, `.nudge`, `.sources` (always last).
+- Editor's notes go in `<p class="ednote">`. The build strips them and fails if one survives.
+- Reading time is calculated at build time (about 220 words a minute, minimum three).
+- Never redraw the logo in a piece; reuse `<use href="#bhl-mark">` (see the tiled field in School as a place to practise being human).
+
+**Fact-check rule for new pieces.** Every figure in public text (a free piece in full, or a request piece's opening) is checked against its source before it is published:
+- **Name the country** for single-country data (e.g. "US public school teachers", "in the UK"). Never present US or other single-country data as Indian or global.
+- **Never round beyond the source** (if the source says 39%, write what it says).
+- **Mark unverified figures**: if a figure cannot be found in a public source, replace it with only what is confirmed (e.g. "Many children..."), or leave it out, until the original report confirms it with a page reference.
+- Every stat has a `.cite` line, and every piece ends with its sources.
+
+**Build.** `python3 tools/notes/build.py` clears and rewrites `public/notes/` (and removes the old `public/lab/`). It reads `CONFIG.formEndpoint`, `CONFIG.email`, the canonical site URL and the logo `<symbol>` from `public/index.html`. It refuses em or en dashes, surviving editor's notes, a missing `<!-- more -->` and locked text in a request page. The pressure test builds into a temp folder and fails if `public/` differs.
+
+**To add a piece:** copy the front matter from an existing piece, write the body with `<!-- more -->`, set `status: draft` while writing, fact-check the public part, then publish. Run the build, start the preview server, run the pressure test, and commit the source and the generated pages together.
 
 **Styles.** `public/css/lab.css` part 1 is copied from the homepage (fonts, tokens, skins, base, header, footer, buttons, form fields) and must stay identical; the pressure test compares `:root` and the skins. Part 2 is the From the lab design. Change a token in both files.
 
@@ -182,7 +210,13 @@ Notes are written in `content/notes/<slug>.md` and built into static pages. Clou
 - [x] `formEndpoint`: Google Apps Script writing to the "BE Human Labs leads" Sheet (see `tools/forms/`).
 - [ ] Optional `bookingUrl`.
 - [ ] Add the brand core as `docs/brand-core.md`.
-- [ ] Roadmap PDF for leadership: the note offers "Get the roadmap as a PDF" (a Talk to us request today); make the PDF when ready.
+- [ ] Roadmap PDF for leadership: Learning when answers are free offers "Get the roadmap as a PDF" (a Talk to us request today); make the PDF when ready.
+- [ ] **Phase B** of the library:
+  - [ ] `/library/` behind Cloudflare Access, for approved readers of the request pieces.
+  - [ ] A follow-up email function for approved requests (the Status and Emailed columns in the Activity tab are ready for it).
+  - [ ] Fact-check all locked text in the 12 request pieces (only the public openings are checked so far), including the ICRIER wording against the original publication.
+  - [ ] Confirm the Tele-MANAS number (14416) in Belonging in the age of chatbots.
+  - [ ] A counsellor's review of Belonging in the age of chatbots before it is shared.
 
 ## Git
 

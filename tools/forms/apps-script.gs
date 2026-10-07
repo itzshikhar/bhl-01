@@ -1,23 +1,27 @@
-// BE Human Labs: website form submissions go into this Sheet.
-// Update with Deploy > Manage deployments > edit > New version (keeps the same URL).
+// BE Human Labs: every website form writes one row to the Activity tab.
+// No emails go out per submission. One summary email goes out each evening.
+// After editing: Deploy > Manage deployments > edit > New version (keeps the same URL).
+// Set the time zone once: Project Settings > Time zone > (GMT+05:30) India Standard Time.
 
 const NOTIFY_EMAIL = 'behumanlabs@zohomail.in';
-const REPLY_TO = 'behumanlabs@zohomail.in';
-const SHEET_NAME = 'Leads';
-const HEADERS = ['Received', 'Email', 'Path', 'Option', 'Topic', 'Message',
-                 'Keep me posted', 'Source', 'Site', 'Sent at'];
-// Reader emails only ever link to pages on this site.
-const NOTE_URL_PREFIX = 'https://behumanlabs.com/notes/';
+const ACTIVITY = 'Activity';
+const HEADERS = ['Received', 'Name', 'Email', 'Organisation', 'Role', 'WhatsApp',
+                 'Action', 'Article or topic', 'Detail', 'Keep me posted',
+                 'Source', 'Site', 'Status', 'Emailed'];
+const ACTIONS = ['signup', 'open', 'request', 'talk', 'join', 'cta'];
+const SUMMARY_HOUR = 21; // 9pm, in the project's time zone
 
-// Run once from the editor: creates the Leads tab and sends a test email.
+// Run once from the editor: creates the Activity tab and switches on the evening summary.
 function setup() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   Logger.log('Attached to: ' + ss.getName() + ' | ' + ss.getUrl());
-  sheet();
-  Logger.log('Leads tab ready');
-  MailApp.sendEmail(NOTIFY_EMAIL, 'BE Human Labs form is connected',
-    'Leads from behumanlabs.com will be added to: ' + ss.getUrl());
-  Logger.log('Test email sent to ' + NOTIFY_EMAIL);
+  activity();
+  Logger.log('Activity tab ready');
+  ScriptApp.getProjectTriggers()
+    .filter(t => t.getHandlerFunction() === 'dailySummary')
+    .forEach(t => ScriptApp.deleteTrigger(t));
+  ScriptApp.newTrigger('dailySummary').timeBased().everyDays(1).atHour(SUMMARY_HOUR).create();
+  Logger.log('Evening summary scheduled for about ' + SUMMARY_HOUR + ':00, time zone ' + Session.getScriptTimeZone());
 }
 
 function doPost(e) {
@@ -32,29 +36,20 @@ function doPost(e) {
       return reply({ ok: false, error: 'email' });
     }
 
-    const row = [new Date(), email, d.path, d.option, d.chip, d.message,
-                 d.keep_me_posted ? 'Yes' : 'No', d.source, d.site, d.time].map(clean);
+    // Older pages sent "path" and "option"; map them so nothing is lost.
+    let action = String(d.action || d.path || '').toLowerCase();
+    if (action === 'read') action = 'signup';
+    if (ACTIONS.indexOf(action) === -1) action = 'talk';
+    const item = d.item || d.option || '';
+    const detail = d.detail || d.message || d.chip || '';
+
+    const row = [new Date(), d.name, email, d.org, d.role, d.whatsapp,
+                 action, item, detail, d.keep_me_posted ? 'Yes' : 'No',
+                 d.source, d.site, '', ''].map(clean);
 
     const lock = LockService.getScriptLock();
     lock.waitLock(10000);
-    try { sheet().appendRow(row); } finally { lock.releaseLock(); }
-
-    // Alert to us. The lead is saved even if this fails.
-    try {
-      MailApp.sendEmail({
-        to: NOTIFY_EMAIL,
-        replyTo: email,
-        subject: (d.path === 'read' ? 'New reader: ' : 'New lead: ') +
-                 (d.option || d.path || 'website') + ' from ' + email,
-        body: HEADERS.map((h, i) => h + ': ' + row[i]).join('\n')
-      });
-    } catch (mailErr) {}
-
-    // Reader copy: only for note sign-ups, only to our own note pages,
-    // and at most once per address per note every six hours.
-    if (d.path === 'read') {
-      try { sendReaderCopy(email, d.note_title, d.note_url); } catch (readerErr) {}
-    }
+    try { activity().appendRow(row); } finally { lock.releaseLock(); }
 
     return reply({ ok: true });
   } catch (err) {
@@ -62,29 +57,47 @@ function doPost(e) {
   }
 }
 
-function sendReaderCopy(email, title, url) {
-  url = String(url || '');
-  title = String(title || 'our latest note').slice(0, 120);
-  if (url.indexOf(NOTE_URL_PREFIX) !== 0 || /\s/.test(url) || url.length > 300) return;
+// One email a day: what happened since the last summary.
+function dailySummary() {
+  const sh = activity();
+  const last = sh.getLastRow();
+  if (last < 2) return;
+  const rows = sh.getRange(2, 1, last - 1, HEADERS.length).getValues();
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const today = rows.filter(r => r[0] instanceof Date && r[0] >= since);
+  if (!today.length) return;
 
-  const cache = CacheService.getScriptCache();
-  const key = 'r:' + Utilities.base64EncodeWebSafe(
-    Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, email.toLowerCase() + '|' + url));
-  if (cache.get(key)) return;
-  cache.put(key, '1', 21600); // 6 hours, the longest the cache allows
+  const count = a => today.filter(r => r[6] === a).length;
+  const people = new Set(today.map(r => String(r[2]).toLowerCase())).size;
+  const reads = {};
+  today.filter(r => r[6] === 'signup' || r[6] === 'open')
+       .forEach(r => { reads[r[7]] = (reads[r[7]] || 0) + 1; });
+  const top = Object.keys(reads).sort((a, b) => reads[b] - reads[a]).slice(0, 5)
+       .map(k => '  ' + reads[k] + '  ' + k);
+  const requests = today.filter(r => r[6] === 'request')
+       .map(r => '  ' + r[1] + ', ' + r[4] + ', ' + r[3] + ': ' + r[7]);
+  const talks = today.filter(r => r[6] === 'talk' || r[6] === 'cta')
+       .map(r => '  ' + r[1] + ', ' + r[4] + ', ' + r[3] + ': ' + r[7]);
 
-  MailApp.sendEmail({
-    to: email,
-    replyTo: REPLY_TO,
-    name: 'BE Human Labs',
-    subject: 'Your copy: ' + title,
-    body:
-      'Thank you for reading ' + title + '.\n\n' +
-      'Here is your link, to come back to it or pass it on:\n' + url + '\n\n' +
-      'If something in it sparked a thought, or you would like to try it at your institution, ' +
-      'just reply to this email. It comes straight to us.\n\n' +
-      'BE Human Labs\nhttps://behumanlabs.com'
-  });
+  const body = [
+    'Last 24 hours on behumanlabs.com',
+    '',
+    'People: ' + people,
+    'New readers: ' + count('signup') + '   Article opens: ' + count('open'),
+    'Access requests: ' + count('request') + '   Conversations: ' + (count('talk') + count('cta')) +
+      '   Joined: ' + count('join'),
+    '',
+    'Top articles', top.length ? top.join('\n') : '  none',
+    '',
+    'Access requests', requests.length ? requests.join('\n') : '  none',
+    '',
+    'Want to talk', talks.length ? talks.join('\n') : '  none',
+    '',
+    'Full log: ' + SpreadsheetApp.getActiveSpreadsheet().getUrl()
+  ].join('\n');
+
+  MailApp.sendEmail(NOTIFY_EMAIL, 'BE Human Labs today: ' + people + ' people, ' +
+    count('request') + ' requests', body);
 }
 
 // Opening the web app URL in a browser shows this, so you can check it's live.
@@ -92,9 +105,9 @@ function doGet() {
   return reply({ ok: true, service: 'bhl-leads' });
 }
 
-function sheet() {
+function activity() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let s = ss.getSheetByName(SHEET_NAME) || ss.insertSheet(SHEET_NAME);
+  let s = ss.getSheetByName(ACTIVITY) || ss.insertSheet(ACTIVITY);
   if (s.getLastRow() === 0) { s.appendRow(HEADERS); s.setFrozenRows(1); }
   return s;
 }

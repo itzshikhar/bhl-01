@@ -29,8 +29,8 @@
     <button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav">Menu</button>
     <nav class="nav" id="nav" aria-label="Sections">
       <a href="/#why">Why</a>
-      <a href="/#lab">The lab</a>
-      <a href="/lab/"{% if current == "lab" %} aria-current="page"{% else %} aria-current="true"{% endif %}>From the lab</a>
+      <a href="/#lab">How we work</a>
+      <a href="/notes/"{% if current == "index" %} aria-current="page"{% else %} aria-current="true"{% endif %}>From the lab</a>
       <a href="/#involved">Get involved</a>
       <a href="/be-human-labs-one-pager.pdf" download>Save my card</a>
     </nav>
@@ -57,14 +57,14 @@
     <button class="tlink" type="button" data-close>Close</button>
   </div>
   <p class="dlg-topic" id="dlg-topic">About: <b></b></p>
-  <form class="f" id="dlg-form" novalidate>
-    <div class="field"><label class="lbl" for="dl-em">Your email</label><input id="dl-em" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com"></div>
-    <div class="field" id="dl-msg-row"><label class="lbl" for="dl-msg">Your message <span style="font-weight:400">(optional)</span></label><textarea id="dl-msg"></textarea></div>
-    <label class="check" id="dl-keep-row"><input type="checkbox" id="dl-keep" checked><span>Keep me posted on future updates and opportunities. You can opt out any time.</span></label>
+  <form class="f pform" id="dlg-form" novalidate>
+    <div class="pfields" data-bhl-profile="dl"></div>
+    <div class="field"><label class="lbl" for="dl-msg">Your message <span class="optional">(optional)</span></label><textarea id="dl-msg"></textarea></div>
+    <div data-bhl-keep="dl"></div>
     <input class="hp" type="text" name="company_website" id="dl-cw" tabindex="-1" autocomplete="off" aria-hidden="true">
     <p class="err" id="dl-err" aria-live="polite" hidden></p>
     <button class="btn" type="submit" id="dl-send">Send</button>
-    <p class="note">We use your email only to reply and, if you opt in, to send updates. You can ask us to delete it any time.</p>
+    <div data-bhl-notice></div>
   </form>
   <div class="done" id="dl-done" hidden tabindex="-1">
     <h3></h3>

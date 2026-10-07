@@ -1,0 +1,4 @@
+# Cloudflare static assets redirects. The From the lab index moved from /lab/ to /notes/.
+/lab /notes/ 301
+/lab/ /notes/ 301
+/lab/* /notes/ 301
