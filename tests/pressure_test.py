@@ -141,8 +141,15 @@ with sync_playwright() as p:
             pg.click(f'[data-tab="{tab}"]')
             for opt in pg.evaluate("[...document.querySelectorAll('[data-opt]')].map(b => b.dataset.opt)"):
                 pg.click(f'[data-opt="{opt}"]')
+                if opt == "updates": continue   # choosing it is the consent; checked below
                 if not (honeypot_ok(pg, "#f") and form_extras_ok(pg, "#f", "f")): missing.append(opt)
-        check(not missing, f"{name}: every homepage form has the honeypot, an unticked consent box and the 18+ and privacy lines {missing or ''}")
+        check(not missing, f"{name}: every other homepage form has the honeypot, an unticked consent box and the 18+ and privacy lines {missing or ''}")
+        pg.click('[data-tab="join"]'); pg.click('[data-opt="updates"]')
+        upd = pg.evaluate(f"""(() => {{ const f = document.querySelector('#f'), t = f.innerText;
+            return {{box: !!f.querySelector('input[type=checkbox]'), line: t.includes("You'll get occasional updates. You can opt out any time."),
+                     notes: t.includes({json.dumps(AGE)}) && t.includes({json.dumps(PRIVACY)})}}; }})()""")
+        check(upd == {"box": False, "line": True, "notes": True} and honeypot_ok(pg, "#f"),
+              f"{name}: Keep me updated shows the updates line instead of a checkbox, with the 18+ and privacy lines {upd}")
 
         def open_ask(src=""):
             pg.goto(URL + src); pg.wait_for_timeout(200)
@@ -170,6 +177,12 @@ with sync_playwright() as p:
         check(f"Sending as {PROFILE['name']}, {PROFILE['role']} at {PROFILE['org']}" in " ".join(sending.split()), f"{name}: profile is remembered and shown as Sending as ...")
         pg.click('#f button[type="submit"]'); pg.wait_for_selector(".done", timeout=5000)
         check(bodies(sent)[-1].get("source") == "edl" and bodies(sent)[-1].get("name") == PROFILE["name"], f"{name}: remembered profile sends, tagged with ?src=edl")
+
+        pg.goto(URL); pg.wait_for_timeout(200); pg.click('[data-tab="join"]'); pg.click('[data-opt="updates"]')
+        n = len(sent); pg.click('#f button[type="submit"]'); pg.wait_for_selector(".done", timeout=5000)
+        bu = bodies(sent)[-1] if len(sent) > n else {}
+        check(bu.get("action") == "join" and bu.get("item") == "Keep me updated" and bu.get("keep_me_posted") is True,
+              f"{name}: Keep me updated sends action join with keep_me_posted true")
 
         mock["reply"] = {"ok": False, "error": "email"}; open_ask(); pg.click('#f button[type="submit"]')
         pg.wait_for_selector("#err:not([hidden])", timeout=5000)
@@ -327,6 +340,10 @@ with sync_playwright() as p:
               and FIELDS <= set(b1), f"{name}: a CTA sends action cta with its text and note:<slug>")
         pg.keyboard.press("Escape")
         check(form_extras_ok(pg, "#dlg-form", "dl") and honeypot_ok(pg, "#dlg-form"), f"{name}: the dialog has the honeypot, an unticked consent box and the 18+ and privacy lines")
+        first = pg.locator("#full [data-cta]").first
+        first.click(); pg.check("#dl-keep"); pg.keyboard.press("Escape"); first.click()
+        check(not pg.is_checked("#dl-keep"), f"{name}: the dialog's consent box is unticked again each time it opens")
+        pg.keyboard.press("Escape")
 
         # Request piece.
         slug = "ai-briefing-for-school-leaders"
@@ -371,6 +388,10 @@ with sync_playwright() as p:
     pg.goto(URL); pg.wait_for_timeout(200)
     nav = pg.evaluate("[...document.querySelectorAll('#nav a')].map(a => [a.textContent.trim(), a.getAttribute('href')])")
     check(["How we work", "#lab"] in nav and ["From the lab", "/notes/"] in nav and not any(t == "The lab" for t, _ in nav), "homepage: nav shows How we work and From the lab (to /notes/)")
+    engine = pg.evaluate("(() => { const a = document.querySelector('.engine-link a'); return [a.textContent.trim(), a.getAttribute('href')]; })()")
+    check(engine == ["See the engine at work: The question has changed", "/notes/the-question-has-changed/"], f"homepage: engine link goes to The question has changed {engine}")
+    linking = [k for k, v in served.items() if k.endswith(".html") and k != f"public/notes/{UNLISTED}/index.html" and UNLISTED in v]
+    check(not linking, f"lab: no page links to the unlisted {UNLISTED} {linking or ''}")
     links = pg.evaluate("[...document.querySelectorAll('#nav a[href=\"/notes/\"], .engine-link a')].map(a => a.href)")
     ok = [urllib.request.urlopen(u).status == 200 for u in links] if URL.startswith("http://localhost") else [True]
     check(len(links) == 2 and all(ok), "homepage: nav and engine links resolve")

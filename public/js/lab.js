@@ -119,6 +119,7 @@
     $("#dlg-topic b").textContent = item;
     err.hidden = true; form.hidden = false; $("#dl-done").hidden = true;
     BHL.mount(dlg);
+    $("#dl-keep").checked = false;   // unticked by default, every time the dialog opens
     dlg.showModal();
     ($("#dl-name") || $("#dl-msg")).focus();
   }

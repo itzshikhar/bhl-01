@@ -97,6 +97,13 @@ for f in Gloock-Regular HankenGrotesk; do pyftsubset tools/fonts/$f.ttf --unicod
 - **Icons:** plus that turns into a minus for accordions (`.pm`); chevron down that flips up for options that expand in place; up-right arrow for links that leave the page. Do not use logo strands as icons.
 - Mobile first. Check 360px and 390px widths; the header must stay on one line. The nav has five links (Why, How we work, From the lab, Get involved, Save my card), so from 760px to 959px the header uses tighter gaps, 20px side padding and a 15px wordmark to stay on one line (same rule in `index.html` and `lab.css`). Check 760px after changing anything in the header.
 
+### Exceptions for notes
+
+The From the lab pages (`public/css/lab.css`, part 2) follow the approved library design, which departs from the rules above in these places only. Do not spread them to the homepage.
+- **The fade gradient.** The opening of a free or request piece fades out over the sign-up wall or request panel (`.fade::after`, a linear gradient to the ground colour).
+- **Round bullets and dots.** List bullets (`ul.plain`), timeline dots (`ol.road`) and score dots (`.score`) are circles, not square.
+- **More than one action per section.** Pieces carry several calls to action (nudges, offer cards, the three-path panel), as approved.
+
 ## Logo rules
 
 - **Never redraw or approximate the logo.** It is an exact trace of `tools/logo/source/logo.png`, symmetrised over 8 rotations. Paths are in `tools/logo/build/mark-paths.json`.
@@ -130,7 +137,7 @@ for f in Gloock-Regular HankenGrotesk; do pyftsubset tools/fonts/$f.ttf --unicod
 - **Fields:** Name, Email, School or organisation, Role (all required; Role is free text, placeholder "e.g. Principal, Teacher, Parent, Founder", no dropdown), WhatsApp (optional, hint "We'll only use this to reply to you").
 - **Errors:** "Add your name.", "Enter a valid email so we can reply.", "Add your school or organisation.", "Add your role, for example Principal or Teacher."
 - **Remembered** in `localStorage` (`bhl-profile`, wrapped in try/catch) after a successful submission, or at once for a sign-up. When known, the fields are replaced by "Sending as <Name>, <Role> at <Organisation> · Change"; Change forgets it on this device and shows empty fields.
-- **Consent:** "Keep me posted on future updates and opportunities. You can opt out any time." on every form, **unticked by default**.
+- **Consent:** "Keep me posted on future updates and opportunities. You can opt out any time." on every form, **unticked by default**, and unticked again every time the Talk to us or Join dialog opens. The one exception is the homepage "Keep me updated" option: choosing it is the consent, so it shows "You'll get occasional updates. You can opt out any time." instead of the checkbox and always sends `keep_me_posted` true.
 - **Under every form:** "You need to be 18 or over to sign up." and "We use your details to understand who reads our work, to reply to you, and, if you tick the box, to send updates. You can ask us to delete them any time."
 - **Honeypot:** every form has a hidden `company_website` field (class `.hp`, off-screen rather than `display:none`, `aria-hidden="true"`, `tabindex="-1"`, `autocomplete="off"`). The script quietly drops any submission where it is filled.
 
@@ -160,8 +167,8 @@ A library of pieces for school leaders, teachers and parents, at `/notes/` (`/la
 
 **Access and status.** Each piece has an `access` and a `status`:
 - `access: free` + `status: published`: listed on the index under "Free to read". The full text is in the page, behind the sign-up wall.
-- `access: request` + `status: published`: listed under "Shared with schools on request" with a lock. **Only the opening is built**: the opening, a fade (the first section's kicker and heading over placeholder lines) and the request panel, which lists the piece's section headings.
-- `status: unlisted`: built at its URL with `noindex`, listed nowhere. (Learning when answers are free is free and unlisted; the homepage engine link still points to it.)
+- `access: request` + `status: published`: listed under "Shared with schools on request" with a lock. **Only the opening is built**: the opening, a fade (the first section's kicker and heading over placeholder lines) and the request panel, which lists every one of the piece's section headings. Its sources list sits after `<!-- more -->`, so it stays locked too; the stats in the opening carry their own `.cite` lines.
+- `status: unlisted`: built at its URL with `noindex`, listed nowhere, and linked from nowhere (the pressure test checks that no other page links to it). Learning when answers are free is free and unlisted. The homepage engine link ("See the engine at work: The question has changed") points to a published free piece.
 - `status: draft`: not built.
 
 **Never build locked text.** For a request piece, nothing after `<!-- more -->` may be written to `public/`: not in the page, not in the fade, not in a data attribute. The text stays in the repo for Phase B. Only the `h2` section headings leave the file (they are listed in the request panel on purpose). The build checks every paragraph, and the pressure test checks every sentence of locked text against every served file. If you add a teaser, build it from the opening or the headings, never from the text after the marker.
