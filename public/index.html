@@ -272,7 +272,7 @@ form.f{padding:var(--s3) 0 var(--s4); border-bottom:1px solid var(--line)}
       <a href="#lab">How we work</a>
       <a href="/notes/">From the lab</a>
       <a href="#involved">Get involved</a>
-      <a href="#" id="cardLink" download>Save my card</a>
+      <a href="/shikhar-anand-be-human-labs.png" download="shikhar-anand-be-human-labs.png">Save my card</a>
     </nav>
     <a class="btn" href="#involved" data-go="talk">Talk to us</a>
   </div>
@@ -562,12 +562,15 @@ form.f{padding:var(--s3) 0 var(--s4); border-bottom:1px solid var(--line)}
 <script>
 /* ---------- edit here ---------- */
 const CONFIG = {
+  // The saved contact ("Save my contact"). After changing these, run python3 tools/card/make.py to rebuild the vCard.
   name: "Shikhar Anand",
-  role: "Founder, BE Human Labs",
+  title: "Founder",
+  org: "BE Human Labs",
+  phone: "+91 97806 05027",
   email: "behumanlabs@zohomail.in",
-  phone: "",
-  linkedinUrl: "",            // optional, added to the saved contact
-  onePagerUrl: "be-human-labs-one-pager.pdf",   // "Save my card" downloads this file; put the PDF next to this page or paste a full link
+  website: "https://behumanlabs.com",
+  note: "Connecting People, Purpose and Possibilities. Developing Forward Thinkers and Active Shapers.",
+  linkedinUrl: "",            // optional, shows the LinkedIn option in Get involved
   bookingUrl: "",              // e.g. your calendar link; leave blank to hide "Pick a time"
   formEndpoint: "https://script.google.com/macros/s/AKfycbyzvvUjOMvt9-it4gJlwyAEVs8Mm8MyGAyuIkV818dBAS7ihMEE9X_CwTJWOX9VMXZe8g/exec",   // Apps Script web app that writes to the "BE Human Labs leads" Sheet (tools/forms); blank keeps submissions in this page only
   events: { conf: "18th Ed Leadership International Roundtable", edl: "Ed Leadership" }   // ?src=edl shows "Met at Ed Leadership? Welcome." and tags each submission with source "edl"
@@ -695,8 +698,6 @@ mb.addEventListener("click", () => { const o = nav.classList.toggle("open"); mb.
 nav.addEventListener("click", e => { if (e.target.closest("a")) { nav.classList.remove("open"); mb.setAttribute("aria-expanded", false); } });
 const src = new URLSearchParams(location.search).get("src");
 if (src) { const w = $("#welcome"); w.textContent = `Met at ${CONFIG.events[src] || "the event"}? Welcome.`; w.hidden = false; }
-const card = $("#cardLink");
-if (CONFIG.onePagerUrl) card.href = CONFIG.onePagerUrl; else card.remove();
 
 /* ---------- get involved ---------- */
 const OPTIONS = {
@@ -744,13 +745,9 @@ function render() {
   BHL.mount($("#panel"));
 }
 const find = id => [...OPTIONS.talk, ...OPTIONS.join].find(o => o.id === id);
-function saveVCard() {
-  const v = ["BEGIN:VCARD", "VERSION:3.0", `FN:${CONFIG.name}`, `ORG:BE Human Labs`, `TITLE:${CONFIG.role}`, `EMAIL:${CONFIG.email}`,
-    CONFIG.phone ? `TEL:${CONFIG.phone}` : "", CONFIG.linkedinUrl ? `URL:${CONFIG.linkedinUrl}` : "", "END:VCARD"].filter(Boolean).join("\r\n");
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([v], {type: "text/vcard"})); a.download = "be-human-labs.vcf";
-  document.body.appendChild(a); a.click(); a.remove();
-}
+// The vCard is a static file built from CONFIG by tools/card/make.py (vCard 3.0, with the mark as its photo).
+// Opening it, rather than downloading it, lets iPhone show "Create New Contact" straight away.
+function saveVCard() { location.href = "/shikhar-anand-be-human-labs.vcf"; }
 
 document.addEventListener("click", e => {
   const t = e.target.closest("[data-tab],[data-opt],[data-chip],[data-act],[data-go]");

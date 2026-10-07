@@ -396,6 +396,52 @@ with sync_playwright() as p:
     ok = [urllib.request.urlopen(u).status == 200 for u in links] if URL.startswith("http://localhost") else [True]
     check(len(links) == 2 and all(ok), "homepage: nav and engine links resolve")
     pg.close()
+
+    # ---------- business card: /connect/, Save my card, Save my contact, no one-pager ----------
+    connect = served.get("public/connect/index.html", "")
+    check(bool(re.search(r'<meta name="robots" content="noindex">', connect)) and 'location.replace("/")' in connect
+          and re.search(r'<meta http-equiv="refresh" content="\d+;url=/">', connect) and "?" not in re.search(r'url=([^"]*)', connect).group(1),
+          "card: /connect/ exists, has noindex and goes to / (script and meta refresh, no query tag)")
+    pg = b.new_page()
+    pg.goto(base + "/connect/"); pg.wait_for_url(lambda u: u.rstrip("/") == base, timeout=5000)
+    check(pg.url.rstrip("/") == base, f"card: /connect/ lands on the homepage {pg.url}")
+    CARD_PNG, VCF = "shikhar-anand-be-human-labs.png", "shikhar-anand-be-human-labs.vcf"
+    saves = []
+    for u in (URL, base + "/notes/", base + f"/notes/{FREE[0]}/"):
+        pg.goto(u)
+        saves += pg.evaluate("[...document.querySelectorAll('#nav a')].filter(a => a.textContent.trim() === 'Save my card').map(a => [a.getAttribute('href'), a.getAttribute('download')])")
+    check(len(saves) == 3 and all(s == [f"/{CARD_PNG}", CARD_PNG] for s in saves), f"card: Save my card downloads /{CARD_PNG} on every page {saves}")
+    png = (ROOT / "public" / CARD_PNG).read_bytes() if (ROOT / "public" / CARD_PNG).exists() else b""
+    size = (int.from_bytes(png[16:20], "big"), int.from_bytes(png[20:24], "big")) if len(png) > 24 else (0, 0)
+    shown = pg.evaluate(f"new Promise(r => {{ const i = new Image(); i.onload = () => r(i.naturalWidth); i.onerror = () => r(0); i.src = '/{CARD_PNG}'; }})") if png else 0
+    check(png[:8] == b"\x89PNG\r\n\x1a\n" and png[12:16] == b"IHDR" and min(size) > 0 and shown == size[0] and len(png) <= 1_100_000,
+          f"card: public/{CARD_PNG} is a valid PNG under about 1 MB {size} {len(png)} bytes")
+    pg.close()
+
+    raw = (ROOT / "public" / VCF).read_bytes() if (ROOT / "public" / VCF).exists() else b""
+    lines = raw.split(b"\r\n")
+    unfolded = raw.replace(b"\r\n ", b"").decode("utf-8", "replace")
+    want = ["BEGIN:VCARD", "VERSION:3.0", "N:Anand;Shikhar;;;", "FN:Shikhar Anand", "TITLE:Founder", "ORG:BE Human Labs",
+            "TEL;TYPE=CELL,VOICE:+91 97806 05027", "EMAIL;TYPE=INTERNET,WORK:behumanlabs@zohomail.in", "URL:https://behumanlabs.com",
+            "NOTE:Connecting People\\, Purpose and Possibilities. Developing Forward Thinkers and Active Shapers.", "END:VCARD"]
+    missing = [w for w in want if w not in unfolded.split("\r\n")]
+    check(raw and not missing, f"vcard: every contact field is in the vCard {missing or ''}")
+    photo = next((m for m in (re.fullmatch(r"PHOTO;ENCODING=b;TYPE=PNG:([A-Za-z0-9+/=]+)", l) for l in unfolded.split("\r\n")) if m), None)
+    import base64
+    check(bool(photo) and base64.b64decode(photo.group(1))[:8] == b"\x89PNG\r\n\x1a\n", "vcard: has a PHOTO line with an embedded PNG")
+    check(raw.endswith(b"\r\n") and b"\n" not in raw.replace(b"\r\n", b"") and b"\r" not in raw.replace(b"\r\n", b"")
+          and all(len(l) <= 75 for l in lines), "vcard: CRLF line endings and lines folded at 75 octets")
+    with tempfile.TemporaryDirectory() as tmp:
+        run = subprocess.run([sys.executable, str(ROOT / "tools/card/make.py"), "--vcard-only", "--out", tmp], capture_output=True, text=True)
+        same = run.returncode == 0 and (Path(tmp) / VCF).read_bytes() == raw
+    check(same, "vcard: public/ matches CONFIG (run python3 tools/card/make.py)")
+    home = served["public/index.html"]
+    ok = urllib.request.urlopen(base + "/" + VCF).status == 200 if URL.startswith("http://localhost") else True
+    check(f'location.href = "/{VCF}"' in home and ok, "vcard: Save my contact opens the vCard")
+
+    pdf = [k for k, v in served.items() if "one-pager" in v]
+    check(not pdf and not (ROOT / "public/be-human-labs-one-pager.pdf").exists() and "onePagerUrl" not in home,
+          f"card: the one-pager PDF is gone and no page links to it {pdf or ''}")
     b.close()
 
 print(f"\n{len(failures)} failure(s)")

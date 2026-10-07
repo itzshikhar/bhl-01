@@ -53,10 +53,13 @@ Open this folder in Claude Code. `CLAUDE.md` holds the project rules: content so
 | `tools/notes/` | Builds `public/notes/` (the index and every piece) from the pieces |
 | `public/css/lab.css`, `public/js/` | Styles and scripts for From the lab; `forms.js` (the shared profile form) is used on every page |
 | `public/be-human-labs-mark.svg` | Logo, exact vector |
-| `public/be-human-labs-one-pager.pdf` | One-pager behind "Save my card" |
+| `public/shikhar-anand-be-human-labs.png` | Both sides of the business card, behind "Save my card" |
+| `public/shikhar-anand-be-human-labs.vcf` | The vCard behind "Save my contact", built from `CONFIG` |
+| `public/connect/` | Where the business card QR lands (via go.behumanlabs.com/connect); it goes on to the homepage |
 | `public/og-image.png` | Link preview image |
 | `tests/pressure_test.py` | Scroll and content checks |
 | `tools/logo/` | Logo trace pipeline and source PNG |
-| `tools/one-pager/make.py` | Rebuilds the one-pager |
+| `tools/card/` | Rebuilds the card image and the vCard (`python3 tools/card/make.py`) |
+| `tools/one-pager/make.py` | Retired: the old one-pager PDF, kept for reference |
 | `wrangler.jsonc` | Cloudflare config |
 | `CLAUDE.md` | Rules for Claude Code |

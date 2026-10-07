@@ -1,0 +1,5 @@
+# Cloudflare response headers for static assets.
+# The contact card: a vCard that phones hand straight to their contacts app.
+/shikhar-anand-be-human-labs.vcf
+  Content-Type: text/vcard; charset=utf-8
+  Content-Disposition: attachment; filename="shikhar-anand-be-human-labs.vcf"

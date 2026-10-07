@@ -11,14 +11,14 @@ Read this file before every task. Read `docs/brand-core.md` before changing any 
 ```bash
 python3 -m http.server 8000 -d public          # preview at http://localhost:8000
 python3 tests/pressure_test.py                  # run with the preview server up; must print "0 failure(s)"
-python3 tools/one-pager/make.py                 # rebuild public/be-human-labs-one-pager.pdf
+python3 tools/card/make.py                      # rebuild the card image and the vCard (after changing CONFIG contact fields)
 python3 tools/notes/build.py                    # rebuild public/notes/ from content/notes/
 npx wrangler deploy                             # manual deploy (normally a push to main deploys)
 ```
 
 Test setup, once: `pip install -r tests/requirements.txt && python3 -m playwright install chromium` (this also installs the note build's requirements from `tools/notes/requirements.txt`).
 
-**Run the pressure test after any change to HTML structure, CSS layout, or the script, and fix failures before committing.** After any change to `content/notes/`, `tools/notes/` or the homepage `CONFIG`, run the note build first: the test fails if `public/` is out of date.
+**Run the pressure test after any change to HTML structure, CSS layout, or the script, and fix failures before committing.** After any change to `content/notes/`, `tools/notes/` or the homepage `CONFIG`, run the note build first: the test fails if `public/` is out of date. After changing the contact fields in `CONFIG`, run `tools/card/make.py` too: the test fails if the vCard is out of date.
 
 ## Layout
 
@@ -28,10 +28,13 @@ public/                  everything that is served
   404.html
   be-human-labs-mark.svg the logo, exact vector
   favicon.svg
-  be-human-labs-one-pager.pdf   downloaded by "Save my card"
+  shikhar-anand-be-human-labs.png   "Save my card": both sides of the business card, built by tools/card/make.py
+  shikhar-anand-be-human-labs.vcf   "Save my contact": vCard 3.0 built from CONFIG by tools/card/make.py
+  connect/index.html     the business card QR's landing page (see Business card below)
   og-image.png           social preview (1200x630)
   fonts/                 Gloock and Hanken Grotesk as Latin-subset WOFF2, self-hosted (OFL licences alongside)
   _redirects             Cloudflare redirects: /lab/ to /notes/ (301)
+  _headers               Cloudflare headers: the vCard is served as text/vcard, as a download
   css/lab.css            styles for the From the lab index and pieces (part 1 copies the homepage tokens and skins)
   js/forms.js            the shared profile and form submission, used by every form on every page
   js/lab.js              index and piece behaviour: filter, sign-up wall, request panel, Talk to us and Join dialog, share
@@ -40,7 +43,8 @@ public/                  everything that is served
 content/notes/<slug>.html  the pieces: HTML with front matter (source for public/notes/)
 tests/pressure_test.py   scroll-motion, content, form and lab checks (Playwright)
 tools/logo/              how the logo vector was made; source PNG; build/mark-paths.json
-tools/one-pager/make.py  builds the one-pager PDF from HTML (reads fonts from tools/fonts/)
+tools/card/              make.py, both sides of the printed card (card-front.png, card-back.png) and the contact photo
+tools/one-pager/make.py  RETIRED: the old one-pager PDF; kept for reference, writes only into tools/one-pager/
 tools/forms/             Apps Script for form submissions (reference copy) and its setup notes
 tools/notes/             build.py, its templates and requirements: turns content/notes/ into public/notes/
 tools/fonts/             full TTF sources of both fonts; the served WOFF2 files are built from these
@@ -124,13 +128,21 @@ The From the lab pages (`public/css/lab.css`, part 2) follow the approved librar
 - Steps already reached stay at full opacity; only steps further down are dimmed.
 - Respect `prefers-reduced-motion`: everything shows in its final state.
 
+## Business card
+
+- **The QR code** on the printed card points to `go.behumanlabs.com/connect`. A Cloudflare redirect rule (in the dashboard) sends it to `/connect/`, which goes on to `/` at once (`location.replace` on load, with a meta refresh for browsers without script). It is a real page, not a `_redirects` rule, so Cloudflare Web Analytics counts each visit to `/connect` as a card scan. It is `noindex` and adds no query tag.
+- **To change where the card goes, edit `public/connect/index.html`, never the card.**
+- **Save my card** (header and phone menu, on every page) downloads `shikhar-anand-be-human-labs.png`: the contact side on top, the logo side below, a small gap in the ground colour, at full resolution, under about 1 MB. Rebuild it with `tools/card/make.py` from `tools/card/card-front.png` and `card-back.png`.
+- **Save my contact** opens `shikhar-anand-be-human-labs.vcf`: vCard 3.0, CRLF line endings, lines folded at 75 octets, with the mark as its photo (`tools/card/contact-photo.png`: 256px, Dark Coffee mark on Pale Oak, rendered from `be-human-labs-mark.svg`; `make.py --photo` re-renders it). Never redraw the logo for it.
+- **The one-pager is retired.** `tools/one-pager/` stays for reference; nothing links to the PDF and the test checks that.
+
 ## Forms and settings
 
 `CONFIG` at the top of the script:
-- `name`, `email`, `role`, `phone`, `linkedinUrl`: used for the saved contact (vCard).
+- `name`, `title`, `org`, `phone`, `email`, `website`, `note`: the saved contact. `tools/card/make.py` builds `public/shikhar-anand-be-human-labs.vcf` from them (`email` is also the fallback address in form errors).
+- `linkedinUrl`: optional; shows the LinkedIn option in Get involved.
 - `bookingUrl`: shows "Pick a time" after a "Let's talk" or "Collaborate" submission.
 - `formEndpoint`: the Google Apps Script web app that adds each submission to the "BE Human Labs leads" Sheet: `https://script.google.com/macros/s/AKfycbyzvvUjOMvt9-it4gJlwyAEVs8Mm8MyGAyuIkV818dBAS7ihMEE9X_CwTJWOX9VMXZe8g/exec`. Blank keeps submissions in the page only (logged to console).
-- `onePagerUrl`: the "Save my card" download.
 - `events`: `?src=<key>` shows "Met at <name>? Welcome." and tags each lead with its source.
 
 **One profile for every form.** Every form on every page (homepage Talk to us and Join the movement, the sign-up wall, the request panel, the Talk to us and Join dialogs on the pieces) uses the same profile, rendered and read by `public/js/forms.js` (`BHL.mount`, `BHL.readProfile`):
@@ -204,7 +216,7 @@ A library of pieces for school leaders, teachers and parents, at `/notes/` (`/la
 
 ## Open items
 
-- [x] Real name, email and role in `CONFIG` and in `tools/one-pager/make.py` (`CONTACT`), then rebuild the PDF.
+- [x] Real name, email and role in `CONFIG` (the one-pager that also carried them is retired).
 - [x] Conference name in `CONFIG.events` (`conf`: 18th Ed Leadership International Roundtable).
 - [x] Domain in `og:url`, `og:image` and the canonical link (behumanlabs.com).
 - [x] `formEndpoint`: Google Apps Script writing to the "BE Human Labs leads" Sheet (see `tools/forms/`).

@@ -1,4 +1,6 @@
-"""Builds public/be-human-labs-one-pager.pdf (A4, one page). Edit CONTACT and the copy below, then run: python3 tools/one-pager/make.py"""
+"""RETIRED: the one-pager is no longer served; "Save my card" downloads the card image (tools/card/).
+Kept for reference. It now writes tools/one-pager/be-human-labs-one-pager.pdf, never public/.
+Was: builds the one-pager PDF (A4, one page). Edit CONTACT and the copy below, then run: python3 tools/one-pager/make.py"""
 import json, base64, os
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.join(HERE, '..', '..')
 from playwright.sync_api import sync_playwright
@@ -82,5 +84,5 @@ footer .contact b{{font-family:Gloock,serif;font-weight:400;font-size:11pt}}
 open(os.path.join(HERE, 'one-pager.html'), 'w').write(html)
 with sync_playwright() as p:
     b = p.chromium.launch(); pg = b.new_page(); pg.set_content(html); pg.wait_for_timeout(500)
-    pg.pdf(path=os.path.join(ROOT, 'public', 'be-human-labs-one-pager.pdf'), format='A4', print_background=True, margin={'top':'0','bottom':'0','left':'0','right':'0'}, prefer_css_page_size=True)
+    pg.pdf(path=os.path.join(HERE, 'be-human-labs-one-pager.pdf'), format='A4', print_background=True, margin={'top':'0','bottom':'0','left':'0','right':'0'}, prefer_css_page_size=True)
     b.close()
