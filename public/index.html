@@ -103,10 +103,11 @@ details[open] > summary .pm::after{transform:translate(-50%,-50%) rotate(0deg)}
 .brand{display:flex; align-items:center; gap:10px; text-decoration:none; font-family:var(--font-display); font-size:19px; letter-spacing:.05em; margin-right:auto; white-space:nowrap}
 .brand svg{width:34px; height:34px; color:var(--dark-coffee); flex:none}
 .nav{display:flex; gap:var(--s3)}
-.nav a{text-decoration:none; font-weight:500; font-size:15px; padding:8px 0}
+.nav a{text-decoration:none; font-weight:500; font-size:15px; padding:8px 0; white-space:nowrap}
 .nav a:hover{text-decoration:underline; text-underline-offset:6px; text-decoration-thickness:1px}
 .bar .btn{min-height:40px; padding:0 16px; font-size:15px}
 .menu-btn{display:none; background:none; border:0; font-weight:600; font-size:15px; padding:8px 4px; cursor:pointer}
+@media (min-width:760px) and (max-width:959px){ .nav,.bar .wrap{gap:var(--s2)} .brand{font-size:16px; letter-spacing:.03em} .bar .btn{padding:0 12px} }
 @media (max-width:759px){
   .menu-btn{display:block}
   .nav{display:none; position:absolute; left:0; right:0; top:100%; background:var(--ground); border-bottom:1px solid var(--hairline); flex-direction:column; gap:0; padding:8px 20px 16px}
@@ -174,6 +175,7 @@ h1{font-size:clamp(42px,6vw,72px); max-width:14ch}
 .erow h3{font-size:clamp(28px,3.6vw,39px); margin-top:4px}
 .erow p{color:var(--soft); margin-top:var(--s1); max-width:30em}
 .erow .eg{font-size:15px; margin-top:var(--s2); padding-left:var(--s2); border-left:1px solid var(--line)}
+.engine-link{margin-top:var(--s3); padding-left:28px}
 
 /* offerings */
 .rows{margin-top:var(--s4); border-top:1px solid var(--line)}
@@ -264,6 +266,7 @@ form.f{padding:var(--s3) 0 var(--s4); border-bottom:1px solid var(--line)}
     <nav class="nav" id="nav" aria-label="Sections">
       <a href="#why">Why</a>
       <a href="#lab">The lab</a>
+      <a href="/lab/">From the lab</a>
       <a href="#involved">Get involved</a>
       <a href="#" id="cardLink" download>Save my card</a>
     </nav>
@@ -370,6 +373,7 @@ form.f{padding:var(--s3) 0 var(--s4); border-bottom:1px solid var(--line)}
           <p>Changes how people live, for individuals and for groups.</p>
           <p class="eg">For example: running it with real people in their real setting, and checking it is still in use months later.</p></div>
       </div>
+      <p class="engine-link"><a class="tlink" href="/notes/learning-when-answers-are-free/">See the engine at work: Learning when answers are free</a></p>
       <div class="more">
         <details><summary>Why all three <span class="pm" aria-hidden="true"></span></summary><div class="body">
           <p>Research without innovation stays on paper, innovation without research solves the wrong problem, and neither changes anything without transformation. Together they make change both right and real.</p>
@@ -550,6 +554,7 @@ form.f{padding:var(--s3) 0 var(--s4); border-bottom:1px solid var(--line)}
   </div>
 </footer>
 
+<script src="js/forms.js"></script>
 <script>
 /* ---------- edit here ---------- */
 const CONFIG = {
@@ -769,30 +774,20 @@ document.addEventListener("submit", async e => {
   const form = e.target, btn = form.querySelector('button[type="submit"]'), err = $("#err");
   if (btn.disabled) return;
   const el = $("#em"), email = el ? el.value.trim() : state.email;
-  const badEmail = () => { err.textContent = "Enter a valid email so we can reply."; err.hidden = false; el && el.focus(); };
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { badEmail(); return; }
+  const badEmail = () => { err.textContent = BHL.EMAIL_MSG; err.hidden = false; el && el.focus(); };
+  if (!BHL.EMAIL_RE.test(email)) { badEmail(); return; }
   err.hidden = true;
   const o = find(state.open);
   const lead = {email, path: state.tab, option: o.id, chip: state.chip, message: $("#msg") ? $("#msg").value.trim() : "",
     keep_me_posted: o.emailOnly ? true : $("#keep").checked, source: src || "direct", site: location.hostname,
     time: new Date().toISOString(), company_website: $("#cw").value};
   if (CONFIG.formEndpoint) {
-    // A text/plain POST with no other custom headers is a simple request, so there is no CORS preflight (Apps Script can't answer one).
-    const label = btn.textContent, ctrl = new AbortController(), timer = setTimeout(() => ctrl.abort(), 15000);
-    btn.disabled = true; btn.textContent = "Sending"; form.setAttribute("aria-busy", "true");
-    let res = null;
-    try {
-      const r = await fetch(CONFIG.formEndpoint, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify(lead), signal: ctrl.signal});
-      res = r.ok ? await r.json() : null;
-    } catch (x) { res = null; }
-    finally { clearTimeout(timer); btn.disabled = false; btn.textContent = label; form.removeAttribute("aria-busy"); }
-    if (!res || res.ok !== true) {
+    const result = await BHL.post(CONFIG.formEndpoint, lead, btn, form);   // public/js/forms.js
+    if (result !== "ok") {
       if (!form.isConnected) return;
-      if (res && res.error === "email") { badEmail(); return; }
+      if (result === "email") { badEmail(); return; }
       // Nothing is cleared: the visitor's email, topic and message stay in the form.
-      const subject = `BE Human Labs: ${o.title}${state.chip ? ` (${state.chip})` : ""}`;
-      const href = `mailto:${CONFIG.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lead.message)}`;
-      err.innerHTML = `That didn't go through. Please try again, or email us at <a href="${esc(href)}">${esc(CONFIG.email)}</a>.`;
+      err.innerHTML = BHL.failHTML(CONFIG.email, `BE Human Labs: ${o.title}${state.chip ? ` (${state.chip})` : ""}`, lead.message);
       err.hidden = false;
       return;
     }

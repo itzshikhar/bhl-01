@@ -48,7 +48,10 @@ Open this folder in Claude Code. `CLAUDE.md` holds the project rules: content so
 
 | Path | What it is |
 |---|---|
-| `public/index.html` | The whole site |
+| `public/index.html` | The homepage |
+| `content/notes/` | From the lab notes (Markdown). Run `python3 tools/notes/build.py` after editing, and commit the result |
+| `tools/notes/` | Builds `public/lab/` and `public/notes/` from the notes |
+| `public/css/lab.css`, `public/js/` | Styles and scripts for the lab pages; `forms.js` is shared with the homepage |
 | `public/be-human-labs-mark.svg` | Logo, exact vector |
 | `public/be-human-labs-one-pager.pdf` | One-pager behind "Save my card" |
 | `public/og-image.png` | Link preview image |

@@ -1,0 +1,221 @@
+---
+title: "Learning when answers are free."
+summary: "The barriers to learning have moved from outside the student to inside. That changes what teachers are for, and what institutions should build next."
+type: research
+status: gated
+date: 2026-10-06
+read_time: 10
+author: "Shikhar Anand, Founder"
+featured: true
+jump_label: "Leading an institution? Skip to the roadmap"
+jump_to: roadmap
+jump_hint: "The roadmap is in the full note. Fill in the short form to read it."
+covers:
+  - "The five barriers that fell, and the five that now decide outcomes"
+  - "A learning model built on pace and depth, and why it produces deep generalists"
+  - "How the lead moves from product, to teacher, to student, and how the lab helps make that happen"
+  - "A five phase roadmap for leaders: the decision each phase asks of you, and what you will have after it"
+---
+
+For most of history, learning was limited by what a student could get. A book, a teacher, someone who could explain the idea, a place to practise, an expert to check the work, a mentor to say what came next. Each of these was scarce, and institutions were built to ration them.
+
+AI has made almost all of that abundant. Information, explanation, practice cases, feedback and even a suggested next step can now be produced on demand, for anyone, at any hour.
+
+That does not make learning easy. It moves the hard part. What stays scarce is what only the student can supply: the effort to work through something, the awareness of what they do not yet understand, and the persistence to keep going when nothing outside them is pushing.
+
+<p class="pull">External barriers ask whether something can be supplied to you. Internal barriers ask whether you can use it once you have it.<small>The dividing line this note uses throughout.</small></p>
+
+<!-- more -->
+
+<p class="kicker">Part one</p>
+
+## Five barriers that have fallen.
+
+Each of these used to decide who learned well. Each is now cheap. The teacher does not disappear from any of them, but where the teacher adds value moves.
+
+<div class="rows">
+<div class="row"><div><h3>Access</h3><p class="q">Can I get the information I need?</p></div><dl><dt>Used to depend on</dt><dd>Having a source: a teacher, a book, an institution.</dd></dl><dl><dt>Where the teacher moves</dt><dd>Curation: finding the right thing and knowing what to trust.</dd></dl></div>
+<!-- fade -->
+<div class="row"><div><h3>Understanding</h3><p class="q">Can I make sense of it and see why it matters?</p></div><dl><dt>Used to depend on</dt><dd>Finding someone who could explain it well.</dd></dl><dl><dt>Where the teacher moves</dt><dd>Meaning: connecting the idea to why it matters for this student.</dd></dl></div>
+<div class="row"><div><h3>Practice and variety</h3><p class="q">Do I get to do it, across real cases?</p></div><dl><dt>Used to depend on</dt><dd>Being placed where real exposure existed.</dd></dl><dl><dt>Where the teacher moves</dt><dd>Designing the struggle: choosing practice that stretches this student.</dd></dl></div>
+<div class="row"><div><h3>Feedback and guidance</h3><p class="q">Do I know what is right and how to improve?</p></div><dl><dt>Used to depend on</dt><dd>An expert's time and attention, always rationed.</dd></dl><dl><dt>Where the teacher moves</dt><dd>Feedback a student will act on, inside a relationship they trust.</dd></dl></div>
+<div class="row"><div><h3>Direction</h3><p class="q">Do I know what to do next?</p></div><dl><dt>Used to depend on</dt><dd>A mentor's experience mapping the next step.</dd></dl><dl><dt>Where the teacher moves</dt><dd>Deciding the destination. What is worth pursuing is still a values call.</dd></dl></div>
+</div>
+
+<p class="caption">Time cuts across all five. Each one used to cost weeks of waiting; now it costs seconds.</p>
+
+<p class="kicker">Part two</p>
+
+## Five barriers that now decide.
+
+When everything outside the student is available, the difference between two students sits inside them. These were always part of learning. They used to be propped up by scarcity, deadlines and a teacher in the room. Now they carry the weight on their own.
+
+<div class="rows">
+<div class="row"><div><h3>Effort</h3><p class="q">Am I working through it?</p></div><dl><dt>What changed</dt><dd>Scarcity used to force the struggle. Answers now arrive with none.</dd></dl><dl><dt>What sets students apart</dt><dd>Choosing effort. Students who engage deeply pull ahead.</dd></dl></div>
+<div class="row"><div><h3>Recall</h3><p class="q">Can I bring it back when I need it?</p></div><dl><dt>What changed</dt><dd>Facts can be retrieved instantly.</dd></dl><dl><dt>What sets students apart</dt><dd>Fluency: ideas held well enough to think and decide fast.</dd></dl></div>
+<div class="row"><div><h3>Self-awareness</h3><p class="q">Do I know what I understand and what I do not?</p></div><dl><dt>What changed</dt><dd>A fixed path once did this for you. Now every path is open at once.</dd></dl><dl><dt>What sets students apart</dt><dd>Knowing what you do not know, and using it as a compass.</dd></dl></div>
+<div class="row"><div><h3>Persistence</h3><p class="q">Will I keep going when it is hard?</p></div><dl><dt>What changed</dt><dd>Deadlines and a classroom used to push. Flexibility removes the push.</dd></dl><dl><dt>What sets students apart</dt><dd>Keeping going with nothing outside forcing it.</dd></dl></div>
+<div class="row"><div><h3>Transfer</h3><p class="q">Can I use what I know somewhere new?</p></div><dl><dt>What changed</dt><dd>Standard execution, once valuable, is what AI now does well.</dd></dl><dl><dt>What sets students apart</dt><dd>Applying knowledge in a situation nobody prepared them for.</dd></dl></div>
+</div>
+
+<div class="nudge"><p>Which of these five hold your students back most? We can help you find out, with classroom visits and short conversations with faculty and students.</p><button class="tlink" type="button" data-cta="Barrier review">Request a barrier review</button></div>
+
+<p class="kicker">Part three</p>
+
+## Pace and depth.
+
+If the internal barriers decide, an institution needs a model that trains them on purpose. We use two tracks. <b>Pace</b> is how fast a student moves through one full loop on a topic and on to the next, across breadth. <b>Depth</b> picks up once a topic is chosen for real expertise. They meet at one stage: Application.
+
+<div class="stages" role="img" aria-label="Eight learning stages from top to bottom. Pace of learning covers stages one to four. Depth of skill covers stages four to eight. Application, stage four, belongs to both.">
+<div class="vtrack">
+<div class="vbar pace" style="grid-row:1 / 5"><span>Pace of learning</span></div>
+<div class="vbar depth" style="grid-row:4 / 9"><span>Depth of skill</span></div>
+<div class="vs first" style="grid-row:1"><span class="n">1</span><div><b>Recognition</b><span class="q">Do I know this exists?</span><span class="d">Meeting the idea, its terms and examples.</span></div></div>
+<div class="vs" style="grid-row:2"><span class="n">2</span><div><b>Mental model</b><span class="q">Do I understand how it works?</span><span class="d">Explaining it in your own words: cause, effect, what can be controlled.</span></div></div>
+<div class="vs" style="grid-row:3"><span class="n">3</span><div><b>Retrieval</b><span class="q">Can I bring it to mind when I need it?</span><span class="d">Pulling the right idea up when a problem appears.</span></div></div>
+<div class="vs hinge" style="grid-row:4"><span class="n">4</span><div><b>Application</b><span class="q">Can I actually use it, hands on?</span><span class="d">Doing the work, making mistakes, taking feedback, correcting.</span><span class="hinge-tag">The hinge: end of pace, start of depth</span></div></div>
+<div class="vs" style="grid-row:5"><span class="n">5</span><div><b>Novel problems</b><span class="q">Can I solve something I was not taught?</span><span class="d">Diagnosing a new problem, forming hypotheses, experimenting.</span></div></div>
+<div class="vs" style="grid-row:6"><span class="n">6</span><div><b>Patterns</b><span class="q">Do I see what keeps recurring?</span><span class="d">After many attempts, spotting the structures and failure modes.</span></div></div>
+<div class="vs" style="grid-row:7"><span class="n">7</span><div><b>Gaps</b><span class="q">Where does the current approach fall short?</span><span class="d">Naming the bottleneck that makes it still hard.</span></div></div>
+<div class="vs" style="grid-row:8"><span class="n">8</span><div><b>Innovation</b><span class="q">Can I create a better way?</span><span class="d">A new method or combination that removes the bottleneck.</span></div></div>
+</div>
+</div>
+
+Read the bars on the left. Pace runs from the first stage to Application, and a student repeats it topic after topic. Depth starts at Application and runs to Innovation, on the few topics a student chooses to master. Retrieval is recalling the tool; Application is using it. A novel problem is diagnosed within one case; a gap is diagnosed across many.
+
+<p class="pull">The target is a deep generalist: fast enough to cover breadth, deep enough on the right topics to actually innovate.<small>Either one alone is not enough.</small></p>
+
+<div class="nudge"><p>The quickest way to test this is on one real course. In a half day workshop, your faculty map a course they teach against the eight stages and see where it stops.</p><button class="tlink" type="button" data-cta="Faculty workshop: map a course">Try it with one of your courses</button></div>
+
+<p class="kicker">Part four</p>
+
+## Who carries each stage, and how the lab helps.
+
+The stages of learning do not change. What changes is who carries each one. The product leads where the work is organisational. The teacher leads where judgment cannot be automated. The student leads where only they can supply the effort. As you move down the stages, the lead moves from product, to teacher, to student.
+
+<div class="flow" role="img" aria-label="The lead moves from product in the early stages, to the teacher in the middle stages, to the student in the late stages.">
+<div class="leg"><span class="who product">Product</span><p>Carries what became abundant: sources, records, feedback, memory.</p></div>
+<span class="arr" aria-hidden="true">&#8594;</span>
+<div class="leg"><span class="who teacher">Teacher</span><p>Carries judgment: designing the struggle, setting real problems.</p></div>
+<span class="arr" aria-hidden="true">&#8594;</span>
+<div class="leg"><span class="who student">Student</span><p>Carries what only they can supply: effort, naming what is stuck, the idea.</p></div>
+</div>
+
+That hand off does not happen by itself. Teachers need new skills before they can let a product carry the early stages. Students need structures that make effort and persistence normal. The institution needs assets that outlast any one cohort. This is the work the lab does with an institution, through four offerings.
+
+<div class="offer">
+<article>
+<h3>People</h3>
+<p class="role">Guide the change</p>
+<p>We work alongside leadership and faculty as they redesign how teaching works. That means coaching teachers to check understanding when the submitted work looks right because AI produced it, and to mark the student's reasoning, not the artefact.</p>
+<p class="gets"><b>The institution gets</b> teachers who are confident leading the middle stages.</p>
+<button class="tlink card-link" type="button" data-cta="People: faculty coaching">Talk about faculty coaching <span aria-hidden="true">&#8594;</span></button>
+</article>
+<article>
+<h3>Products</h3>
+<p class="role">Scale it</p>
+<p>We help shape the one platform where work happens: curated sources the institution stands behind, a record where no work gets lost, and a view of where students stall across a whole cohort.</p>
+<p class="gets"><b>The institution gets</b> a product that carries the early stages, and sight it never had before.</p>
+<button class="tlink card-link" type="button" data-cta="Products: the platform">Explore the platform with us <span aria-hidden="true">&#8594;</span></button>
+</article>
+<article>
+<h3>Programs</h3>
+<p class="role">Structure it</p>
+<p>We design and run the first programs, then hand them over. Induction and faculty development come first, for teachers. Live projects, project reviews, an open problems seminar and incubation follow, for students.</p>
+<p class="gets"><b>The institution gets</b> programs it can run on its own, with names its faculty already know.</p>
+<button class="tlink card-link" type="button" data-cta="Programs: program design">Design a program with us <span aria-hidden="true">&#8594;</span></button>
+</article>
+<article>
+<h3>Systems</h3>
+<p class="role">Sustain it</p>
+<p>We help build what no single teacher can: a bank of real problems from employers and labs, a practice bank, a repository of past projects, shared standards, and incentives that reward the new work.</p>
+<p class="gets"><b>The institution gets</b> assets that become more valuable every year they are used.</p>
+<button class="tlink card-link" type="button" data-cta="Systems: problem bank">Start a problem bank <span aria-hidden="true">&#8594;</span></button>
+</article>
+</div>
+
+<p class="kicker">Part five</p>
+
+<h2 id="roadmap" tabindex="-1">A roadmap for institution leaders.</h2>
+
+Every institution starts from a different place, so the pace will differ. The order matters more than the speed. Each phase asks one clear decision of leadership and leaves something visible behind, so you can judge progress before committing to the next.
+
+<ol class="road">
+<li>
+<span class="ph">Phase 1</span>
+<div>
+<h3>Agree what success looks like.</h3>
+<p>We spend time with your leadership, faculty and students to understand how learning, feedback and assessment work today. Together we agree the few outcomes that will count, and record where your students stand on them now.</p>
+<dl class="lead-box">
+<div><dt>Your decision</dt><dd>Name a senior sponsor, and choose the departments or campuses to start with.</dd></div>
+<div><dt>What you will have</dt><dd>A clear baseline, and a shared definition of success your board can back.</dd></div>
+</dl>
+<div class="start">
+<p><b>Most institutions start here.</b> Phase 1 begins with one conversation with your leadership team.</p>
+<button class="btn" type="button" data-cta="Phase 1: discovery conversation">Book a discovery conversation</button>
+</div>
+</div>
+</li>
+<li>
+<span class="ph">Phase 2</span>
+<div>
+<h3>Equip your first group of faculty.</h3>
+<p>Your teachers learn to check real understanding when the work looks right because AI produced it, and to redesign assignments so students defend their choices. Teachers come first because everything after depends on them.</p>
+<dl class="lead-box">
+<div><dt>Your decision</dt><dd>Protect faculty time for development, and recognise the teachers who lead.</dd></div>
+<div><dt>What you will have</dt><dd>A core group of faculty using redesigned assignments in their own classes.</dd></div>
+</dl>
+</div>
+</li>
+<li>
+<span class="ph">Phase 3</span>
+<div>
+<h3>Prove it in a pilot.</h3>
+<p>The new way of working runs in your chosen departments, on one platform used by nearly every student and teacher there. The platform carries the routine stages, so teachers can spend their time where judgment matters.</p>
+<dl class="lead-box">
+<div><dt>Your decision</dt><dd>Commit to full use within the pilot, so the evidence is real.</dd></div>
+<div><dt>What you will have</dt><dd>Students moving through topics faster, teachers spotting who is struggling earlier, and a fair comparison with the rest of the institution.</dd></div>
+</dl>
+</div>
+</li>
+<li>
+<span class="ph">Phase 4</span>
+<div>
+<h3>Connect students to real problems.</h3>
+<p>Employers, research labs and the city bring live problems to campus. Students work on them under trained faculty, review past projects, and test their thinking with practitioners in the room.</p>
+<dl class="lead-box">
+<div><dt>Your decision</dt><dd>Open doors to industry and community partners, and make this work count toward assessment.</dd></div>
+<div><dt>What you will have</dt><dd>Students solving problems nobody taught them, and employers who start to recognise your graduates.</dd></div>
+</dl>
+</div>
+</li>
+<li>
+<span class="ph">Phase 5</span>
+<div>
+<h3>Make it your institution's own.</h3>
+<p>The model extends across the institution. Incubation and seed funding back the ideas worth building. Standards and incentives keep the new work rewarded, and every program moves fully into your team's hands.</p>
+<dl class="lead-box">
+<div><dt>Your decision</dt><dd>Embed the model in policy, budget and promotion criteria.</dd></div>
+<div><dt>What you will have</dt><dd>An institution that runs the model on its own, with assets that grow more valuable every year, and graduates who stand out.</dd></div>
+</dl>
+</div>
+</li>
+</ol>
+
+<div class="nudge"><p>Taking this to your board or management team? We will send you the roadmap as a one page PDF, ready to share.</p><button class="tlink" type="button" data-cta="Roadmap PDF for leadership">Get the roadmap as a PDF</button></div>
+
+<div class="cta skin-coffee">
+<h2>Build this with us.</h2>
+<p class="lead">We are looking for institutions willing to test this model with real teachers and students, and to tell us where it breaks. Pick the path that fits you.</p>
+<div class="paths">
+<div><span class="who-l">Institution leaders</span><p>Begin with Phase 1: one conversation to agree what success looks like.</p><button class="btn" type="button" data-cta="Phase 1: discovery conversation">Start with Phase 1</button></div>
+<div><span class="who-l">Faculty</span><p>Join a small group of teachers redesigning one course each.</p><button class="tlink" type="button" data-cta="Faculty pilot group">Join a faculty pilot group</button></div>
+<div><span class="who-l">Employers and partners</span><p>Bring a live problem your team is facing, and let students work on it.</p><button class="tlink" type="button" data-cta="Partner: bring a real problem">Bring a real problem to campus</button></div>
+</div>
+<div class="acts end">
+<button class="tlink" type="button" data-notify>Tell me when the next note is out</button>
+<a class="tlink" href="/lab/">More from the lab</a>
+</div>
+</div>
+
+<p class="sources">About this note: a framework from the lab's own work and reasoning. It reports no survey figures, so it carries no statistical sources. Evidence on jobs and training sits on the main site, with sources.</p>
