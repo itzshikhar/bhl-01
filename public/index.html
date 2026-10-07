@@ -107,7 +107,7 @@ details[open] > summary .pm::after{transform:translate(-50%,-50%) rotate(0deg)}
 .nav a:hover{text-decoration:underline; text-underline-offset:6px; text-decoration-thickness:1px}
 .bar .btn{min-height:40px; padding:0 16px; font-size:15px}
 .menu-btn{display:none; background:none; border:0; font-weight:600; font-size:15px; padding:8px 4px; cursor:pointer}
-@media (min-width:760px) and (max-width:959px){ .nav,.bar .wrap{gap:var(--s2)} .brand{font-size:16px; letter-spacing:.03em} .bar .btn{padding:0 12px} }
+@media (min-width:760px) and (max-width:959px){ .nav,.bar .wrap{gap:var(--s2)} .bar .wrap{padding:0 20px} .brand{font-size:15px; letter-spacing:.03em} .bar .btn{padding:0 12px} }
 @media (max-width:759px){
   .menu-btn{display:block}
   .nav{display:none; position:absolute; left:0; right:0; top:100%; background:var(--ground); border-bottom:1px solid var(--hairline); flex-direction:column; gap:0; padding:8px 20px 16px}
@@ -220,8 +220,11 @@ form.f{padding:var(--s3) 0 var(--s4); border-bottom:1px solid var(--line)}
 .field textarea{min-height:96px; resize:vertical}
 .field input:focus,.field textarea:focus{outline:2px solid var(--ink); outline-offset:0; border-color:transparent}
 ::placeholder{color:var(--soft); opacity:.8}
-.known{display:flex; justify-content:space-between; gap:var(--s2); align-items:center; border:1px solid var(--line); padding:10px 14px; margin-bottom:var(--s3); font-size:15px}
-.known button{background:none; border:0; font-weight:600; text-decoration:underline; cursor:pointer; min-height:32px}
+/* the shared profile (js/forms.js): fields, or "Sending as ..." once known */
+.sending{display:block; border:1px solid var(--line); padding:10px 14px; margin-bottom:var(--s3); font-size:15px}
+.sending .change{background:none; border:0; padding:0; font-weight:600; text-decoration:underline; cursor:pointer; min-height:32px}
+.field .hint{display:block; font-size:14px; color:var(--soft); margin-top:6px}
+.optional{font-weight:400}
 .check{display:flex; gap:12px; align-items:flex-start; font-size:15px; margin-bottom:var(--s3)}
 .check input{width:20px; height:20px; margin-top:2px; accent-color:var(--ink); flex:none}
 .err{font-size:15px; font-weight:600; margin:calc(-1 * var(--s2)) 0 var(--s2)}
@@ -265,8 +268,8 @@ form.f{padding:var(--s3) 0 var(--s4); border-bottom:1px solid var(--line)}
     <button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav">Menu</button>
     <nav class="nav" id="nav" aria-label="Sections">
       <a href="#why">Why</a>
-      <a href="#lab">The lab</a>
-      <a href="/lab/">From the lab</a>
+      <a href="#lab">How we work</a>
+      <a href="/notes/">From the lab</a>
       <a href="#involved">Get involved</a>
       <a href="#" id="cardLink" download>Save my card</a>
     </nav>
@@ -566,7 +569,7 @@ const CONFIG = {
   onePagerUrl: "be-human-labs-one-pager.pdf",   // "Save my card" downloads this file; put the PDF next to this page or paste a full link
   bookingUrl: "",              // e.g. your calendar link; leave blank to hide "Pick a time"
   formEndpoint: "https://script.google.com/macros/s/AKfycbyzvvUjOMvt9-it4gJlwyAEVs8Mm8MyGAyuIkV818dBAS7ihMEE9X_CwTJWOX9VMXZe8g/exec",   // Apps Script web app that writes to the "BE Human Labs leads" Sheet (tools/forms); blank keeps submissions in this page only
-  events: { conf: "18th Ed Leadership International Roundtable" }   // ?src=conf shows "Met at 18th Ed Leadership International Roundtable? Welcome."
+  events: { conf: "18th Ed Leadership International Roundtable", edl: "Ed Leadership" }   // ?src=edl shows "Met at Ed Leadership? Welcome." and tags each submission with source "edl"
 };
 
 /* BE Human Labs mark: traced from the logo PNG, symmetrised over 8 rotations.
@@ -707,25 +710,22 @@ const OPTIONS = {
     {id: "team", title: "Bring this to my team", sub: "Workshop, talk or pilot for your organisation", chips: ["Workshop", "Talk", "Pilot"], msg: "Tell us about your team", cta: "Send"}
   ]
 };
-const state = {tab: "talk", open: null, chip: null, email: "", editing: false, done: null, leads: []};
+const state = {tab: "talk", open: null, chip: null, done: null, sentAs: "", leads: []};
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
 function formHTML(o) {
   const chips = o.chips ? `<span class="lbl" id="cl">What's this about?</span><div class="chips" role="group" aria-labelledby="cl">${o.chips.map(c => `<button type="button" class="chip" data-chip="${c}" aria-pressed="${state.chip === c}">${c}</button>`).join("")}</div>` : "";
-  const email = state.email && !state.editing
-    ? `<div class="known"><span>Using <b>${esc(state.email)}</b></span><button type="button" data-act="edit">Change</button></div>`
-    : `<div class="field"><label class="lbl" for="em">Your email</label><input id="em" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" value="${esc(state.email)}"></div>`;
+  // The profile fields, the consent box and the 18+ and privacy lines come from js/forms.js (BHL.mount), shared with the notes.
   const msg = o.msg ? `<div class="field"><label class="lbl" for="msg">${o.msg} <span style="font-weight:400">(optional)</span></label><textarea id="msg"></textarea></div>` : "";
-  const keep = o.emailOnly ? "" : `<label class="check"><input type="checkbox" id="keep" checked><span>Keep me posted on future updates and opportunities. You can opt out any time.</span></label>`;
   const hp = `<input class="hp" type="text" name="company_website" id="cw" tabindex="-1" autocomplete="off" aria-hidden="true">`;
-  return `<form class="f" id="f" novalidate>${chips}${email}${msg}${keep}${hp}<p class="err" id="err" aria-live="polite" hidden>Enter a valid email so we can reply.</p><button class="btn" type="submit">${o.cta}</button>
-    <p class="note">We use your email only to reply and, if you opt in, to send updates. You can ask us to delete it any time.</p></form>`;
+  return `<form class="f" id="f" novalidate>${chips}<div data-bhl-profile="f"></div>${msg}<div data-bhl-keep="f"></div>${hp}<p class="err" id="err" aria-live="polite" hidden></p><button class="btn" type="submit">${o.cta}</button>
+    <div data-bhl-notice></div></form>`;
 }
 function panelHTML() {
   if (state.done) {
     const o = state.done;
     const head = o.id === "updates" ? "You're on the list." : o.id === "story" ? "Thank you for sharing." : "Thanks. We'll reply within 48 hours.";
-    return `<div class="done"><h3>${head}</h3><p>We have <b>${esc(state.email)}</b>.</p>
+    return `<div class="done"><h3>${head}</h3><p>We have <b>${esc(state.sentAs)}</b>.</p>
       <div class="actions">${o.book && CONFIG.bookingUrl ? `<a class="btn" href="${CONFIG.bookingUrl}" target="_blank" rel="noopener">Pick a time</a>` : `<button class="btn" type="button" data-act="vcard">Save my contact</button>`}
       <button class="tlink" type="button" data-act="again">Do something else</button></div></div>`;
   }
@@ -738,6 +738,7 @@ function render() {
   $$(".tab").forEach(t => t.setAttribute("aria-selected", t.dataset.tab === state.tab));
   $("#panel").setAttribute("aria-labelledby", "tab-" + state.tab);
   $("#panel").innerHTML = panelHTML();
+  BHL.mount($("#panel"));
 }
 const find = id => [...OPTIONS.talk, ...OPTIONS.join].find(o => o.id === id);
 function saveVCard() {
@@ -755,12 +756,11 @@ document.addEventListener("click", e => {
   if (t.dataset.tab) { state.tab = t.dataset.tab; state.open = null; state.done = null; render(); return; }
   if (t.dataset.opt) {
     state.open = state.open === t.dataset.opt ? null : t.dataset.opt;
-    const o = find(t.dataset.opt); state.chip = o.chips ? o.chips[0] : null; state.editing = false; render();
-    const first = $("#em") || $("#msg"); if (first && state.open) first.focus({preventScroll: true});
+    const o = find(t.dataset.opt); state.chip = o.chips ? o.chips[0] : null; render();
+    const first = $("#f-name") || $("#msg"); if (first && state.open) first.focus({preventScroll: true});
     return;
   }
   if (t.dataset.chip) { state.chip = t.dataset.chip; $$(".chip").forEach(c => c.setAttribute("aria-pressed", c.dataset.chip === state.chip)); return; }
-  if (t.dataset.act === "edit") { state.editing = true; render(); $("#em").focus(); return; }
   if (t.dataset.act === "again") { state.done = null; render(); return; }
   if (t.dataset.act === "vcard") { saveVCard(); }
 });
@@ -773,27 +773,28 @@ document.addEventListener("submit", async e => {
   e.preventDefault();
   const form = e.target, btn = form.querySelector('button[type="submit"]'), err = $("#err");
   if (btn.disabled) return;
-  const el = $("#em"), email = el ? el.value.trim() : state.email;
-  const badEmail = () => { err.textContent = BHL.EMAIL_MSG; err.hidden = false; el && el.focus(); };
-  if (!BHL.EMAIL_RE.test(email)) { badEmail(); return; }
+  const read = BHL.readProfile("f");
+  const fail = (msg, el) => { err.textContent = msg; err.hidden = false; if (el) el.focus(); };
+  if (read.error) { fail(read.error, read.el); return; }
   err.hidden = true;
   const o = find(state.open);
-  const lead = {email, path: state.tab, option: o.id, chip: state.chip, message: $("#msg") ? $("#msg").value.trim() : "",
-    keep_me_posted: o.emailOnly ? true : $("#keep").checked, source: src || "direct", site: location.hostname,
-    time: new Date().toISOString(), company_website: $("#cw").value};
+  const item = `${o.title}${state.chip ? `: ${state.chip}` : ""}`;
+  const lead = BHL.lead(read.profile, state.tab === "talk" ? "talk" : "join", item, $("#msg") ? $("#msg").value.trim() : "",
+    $("#f-keep").checked, $("#cw").value);
   if (CONFIG.formEndpoint) {
     const result = await BHL.post(CONFIG.formEndpoint, lead, btn, form);   // public/js/forms.js
     if (result !== "ok") {
       if (!form.isConnected) return;
-      if (result === "email") { badEmail(); return; }
-      // Nothing is cleared: the visitor's email, topic and message stay in the form.
-      err.innerHTML = BHL.failHTML(CONFIG.email, `BE Human Labs: ${o.title}${state.chip ? ` (${state.chip})` : ""}`, lead.message);
+      if (result === "email") { fail(BHL.EMAIL_MSG, $("#f-email")); return; }
+      // Nothing is cleared: everything the visitor typed stays in the form.
+      err.innerHTML = BHL.failHTML(CONFIG.email, `BE Human Labs: ${item}`, lead.detail);
       err.hidden = false;
       return;
     }
   }
   state.leads.push(lead); console.log("[BE Human Labs]", lead);
-  state.email = email; state.editing = false; state.done = o; state.open = null; render();
+  BHL.saveProfile(read.profile);
+  state.sentAs = read.profile.email; state.done = o; state.open = null; render();
 });
 render();
 </script>
