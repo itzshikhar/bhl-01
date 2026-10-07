@@ -1,6 +1,7 @@
 {% extends "base.html" %}
+{% set free = n.access == "free" %}
 {% block title %}{{ n.title }} | BE Human Labs{% endblock %}
-{% block description %}{{ n.summary }}{% endblock %}
+{% block description %}{{ n.dek }}{% endblock %}
 {% block robots %}{% if n.status == "unlisted" %}<meta name="robots" content="noindex">{% endif %}{% endblock %}
 {% block og_type %}article{% endblock %}
 {% block og_title %}{{ n.title }}{% endblock %}
@@ -8,71 +9,95 @@
 <article class="skin" aria-labelledby="note-h">
   <div class="wrap">
     <div class="col">
-      <a class="back" href="/lab/">&#8592; From the lab</a>
+      <a class="back" href="/notes/">&#8592; From the lab</a>
       <header class="nhead">
-        <span class="eyebrow">{{ n.type_label }}</span>
+        <span class="eyebrow">{{ n.eyebrow }}</span>
         <h1 id="note-h">{{ n.title }}</h1>
-        <p class="lead">{{ n.summary }}</p>
-        <p class="meta"><span>{{ n.author }}</span><span>{{ n.month }}</span><span>{{ n.read_time }} min read</span>{% if n.status == "gated" %}<span class="chip" id="stateChip">Opening only</span>{% endif %}</p>
+        <p class="lead">{{ n.lead }}</p>
+        <p class="meta"><span>{{ n.author }}</span><span>{{ n.date }}</span><span>{{ n.minutes }} min read</span><span class="chip" id="stateChip">{{ "Free to read" if free else "Opening only" }}</span></p>
         <div class="ntools">
 {% if n.jump_label and n.jump_to %}
-          <button class="tlink" type="button" data-jump="{{ n.jump_to }}"{% if n.jump_hint %} data-hint="{{ n.jump_hint }}"{% endif %}>{{ n.jump_label }}</button>
+          <button class="tlink" type="button" data-jump="{{ n.jump_to }}" data-hint="{{ 'That section is in the full article. Fill in the short form to read it.' if free else 'That section is in the full piece. Request access to read it.' }}">{{ n.jump_label }}</button>
 {% endif %}
           <button class="tlink" type="button" data-share>Share with a colleague</button>
         </div>
       </header>
 
       <div class="body prose">
-        {{ n.opening|safe }}
-{% if n.status == "gated" %}
+{{ n.opening|safe }}
+{% if free %}
 
         <div class="teaser fade prose" id="teaser" aria-hidden="true" inert>
-        {{ n.teaser|safe }}
+{{ n.teaser|safe }}
         </div>
 
         <aside class="gate skin-coffee" id="gate" aria-labelledby="gate-h">
-          <h2 id="gate-h">Read the full note.</h2>
-          <p class="lead">Tell us who you are and the rest of the note opens right here. We will also email you a link, so you can come back to it or pass it on.{% if n.covers %} It covers:{% endif %}</p>
-{% if n.covers %}
-          <ul class="plain">
-{% for c in n.covers %}
-            <li>{{ c }}</li>
-{% endfor %}
-          </ul>
+          <h2 id="gate-h">Read the full article.</h2>
+          <p class="lead">It is free. Tell us who you are and the rest of this article opens right here.{% if n.headings %} It covers:{% endif %}</p>
+{% if n.headings %}
+          <ul class="plain">{% for h in n.headings %}<li>{{ h }}</li>{% endfor %}</ul>
 {% endif %}
-          <form id="reqForm" novalidate>
-            <label for="rq-email">Email
-              <input id="rq-email" type="email" inputmode="email" autocomplete="email" placeholder="you@institution.edu" required>
-            </label>
-            <label for="rq-org">Organisation
-              <input id="rq-org" type="text" autocomplete="organization" placeholder="School of Management" required>
-            </label>
-            <label for="rq-role" class="full-w">Your role
-              <select id="rq-role" required>
-                <option value="">Choose one</option>
-                <option>Leadership: dean, principal, director</option>
-                <option>Faculty or teacher</option>
-                <option>Employer or partner</option>
-                <option>Student</option>
-                <option>Other</option>
-              </select>
-            </label>
-            <input class="hp" type="text" name="company_website" id="rq-cw" tabindex="-1" autocomplete="off" aria-hidden="true">
-            <p class="err" id="rq-err" aria-live="polite" hidden></p>
-            <div class="acts">
-              <button class="btn" type="submit">Read the full note</button>
-              <button class="tlink" type="button" data-cta="A 20 minute conversation">Prefer to talk first? Book 20 minutes</button>
-            </div>
-            <p class="small">We use your details to understand who reads our work, to email you this note, and to reply if you get in touch. You can ask us to delete them any time.</p>
+          <form class="pform" id="signupForm" novalidate>
+            <div class="pfields" data-bhl-profile="su"></div>
+            <div data-bhl-keep="su"></div>
+            <input class="hp" type="text" name="company_website" id="su-cw" tabindex="-1" autocomplete="off" aria-hidden="true">
+            <p class="err" id="su-err" aria-live="polite" hidden></p>
+            <div class="acts"><button class="btn" type="submit">Read the full article</button></div>
+            <div data-bhl-notice></div>
           </form>
         </aside>
 
         <div class="prose" id="full" hidden>
           <p class="welcome" id="welcomeLine" hidden tabindex="-1"></p>
-        {{ n.rest|safe }}
+{{ n.rest_before|safe }}
+{% if next %}
+          <div class="readnext"><p class="eyebrow">Next from the lab</p><div class="rn">
+{% for r in next %}
+            <a class="rncard" href="{{ r.path }}"><span class="eyebrow">{% if r.access == "request" %}{{ lock|safe }} {% endif %}{{ r.type_label }} &#183; {{ "Shared on request" if r.access == "request" else "Free to read" }}</span><b>{{ r.title }}</b><span class="d">{{ r.dek }}</span></a>
+{% endfor %}
+          </div></div>
+{% endif %}
+{{ n.rest_after|safe }}
         </div>
 {% else %}
-        {{ n.rest|safe }}
+
+        <div class="teaser fade" aria-hidden="true" inert>
+{% if n.kicker %}          <p class="kicker">{{ n.kicker }}</p>
+{% endif %}
+{% if n.first_h2 %}          <h2>{{ n.first_h2 }}</h2>
+{% endif %}
+          <div class="ghost"><span></span><span></span><span></span><span></span><span></span></div>
+        </div>
+
+        <aside class="gate skin-coffee" id="gate" aria-labelledby="gate-h">
+          <h2 id="gate-h">Request the full piece.</h2>
+          <p class="lead">We share this piece with school leaders, teachers and partners on request. Tell us who you are, and we will reply within three working days after the conference.{% if n.headings %} It covers:{% endif %}</p>
+{% if n.headings %}
+          <ul class="plain">{% for h in n.headings %}<li>{{ h }}</li>{% endfor %}</ul>
+{% endif %}
+          <form class="pform" id="requestForm" novalidate>
+            <div class="pfields" data-bhl-profile="rq"></div>
+            <div class="field full-w"><label class="lbl" for="rq-use">What would you use it for? <span class="optional">(optional)</span></label><textarea id="rq-use" placeholder="For example: a staff meeting on homework next month"></textarea></div>
+            <div data-bhl-keep="rq"></div>
+            <input class="hp" type="text" name="company_website" id="rq-cw" tabindex="-1" autocomplete="off" aria-hidden="true">
+            <p class="err" id="rq-err" aria-live="polite" hidden></p>
+            <div class="acts">
+              <button class="btn" type="submit">Request access</button>
+              <button class="tlink" type="button" data-talk="A 20 minute conversation">Prefer to talk first? Book 20 minutes</button>
+            </div>
+            <div data-bhl-notice></div>
+          </form>
+          <div class="done" id="requestDone" hidden tabindex="-1">
+            <h3>Request received.</h3>
+            <p>We read every request ourselves and will reply within three working days after the conference.</p>
+            <p>While you wait, these {{ "three" if free_list|length == 3 else free_list|length }} pieces are free to read:</p>
+            <div class="free">
+{% for f in free_list %}
+              <a class="tlink" href="{{ f.path }}">{{ f.title.rstrip(".") }}</a>
+{% endfor %}
+            </div>
+          </div>
+        </aside>
 {% endif %}
       </div>
     </div>
